@@ -2729,6 +2729,27 @@
                 });
             }
             
+            // ==================== 页面切换时加载档案列表 ====================
+            // 页面切换时，如果是档案页面，加载目标列表
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const targetPage = item.dataset.page;
+                    if (targetPage === 'folder') {
+                        // 切换到档案页面时，加载目标列表
+                        // 实际应该从 Bot 获取数据，这里使用示例数据
+                        setTimeout(() => {
+                            renderTargetList(sampleTargets);
+                        }, 300);
+                    }
+                });
+            });
+            
+            // 初始化：如果当前是档案页面，加载数据
+            const pageFolder = document.getElementById('page-folder');
+            if (pageFolder && pageFolder.classList.contains('active')) {
+                renderTargetList(sampleTargets);
+            }
+            
             console.log('✅ 所有事件监听器已初始化完成');
         }
         
@@ -2903,24 +2924,7 @@
             });
         }
         
-        // 页面切换时，如果是档案页面，加载目标列表
-        navItems.forEach(item => {
-            item.addEventListener('click', () => {
-                const targetPage = item.dataset.page;
-                if (targetPage === 'folder') {
-                    // 切换到档案页面时，加载目标列表
-                    // 实际应该从 Bot 获取数据，这里使用示例数据
-                    setTimeout(() => {
-                        renderTargetList(sampleTargets);
-                    }, 300);
-                }
-            });
-        });
-        
-        // 初始化：如果当前是档案页面，加载数据
-        if (document.getElementById('page-folder').classList.contains('active')) {
-            renderTargetList(sampleTargets);
-        }
+        // 注意：页面切换时加载档案列表的代码已移到 initEventListeners() 函数中
 
         // DOM 加载完成后初始化 i18n 和事件监听器
         function initUI() {
