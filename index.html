@@ -1170,6 +1170,34 @@
             text-shadow: 0 0 10px rgba(0, 209, 255, 1), 
                          0 0 20px rgba(0, 209, 255, 0.8);
         }
+
+        /* ==================== 标签容器自动换行样式 ==================== */
+        /* 确保容器内的标签可以自动换行，不再显示 ... */
+        .relationship-container, .stage-container,
+        .segment-container {
+            display: flex;
+            flex-wrap: wrap; /* 允许换行 */
+            gap: 10px;      /* 标签之间的间距 */
+            justify-content: space-around;
+        }
+
+        .tag-item,
+        .segment-option {
+            min-width: 60px; /* 最小宽度 */
+            width: auto;     /* 宽度自适应内容 */
+            padding: 8px 12px;
+            font-size: 14px; /* 适当调小字体 */
+            white-space: normal; /* 允许文字在内部换行 */
+            text-align: center;
+        }
+
+        /* 确保按钮在最上层且可点击 */
+        #start-analysis-btn,
+        #confirmBtn {
+            position: relative;
+            z-index: 10;
+            pointer-events: auto !important;
+        }
     </style>
 </head>
 <body>
@@ -2571,11 +2599,36 @@
         }
 
         // DOM 加载完成后初始化 i18n
+        function initUI() {
+            initI18n();
+            
+            // ==================== 根据 Telegram 用户语言更新 UI ====================
+            // 获取 Telegram 用户的语言设置
+            const userLanguage = window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code || 'en';
+            
+            const simpleTranslations = {
+                'zh': { title: "游戏配置", button: "开始分析" },
+                'en': { title: "Game Configuration", button: "Start Analysis" }
+            };
+            
+            // 根据语言更新 UI
+            const lang = userLanguage.startsWith('zh') ? 'zh' : 'en';
+            const titleElement = document.querySelector('h2[data-i18n="page_title_config"]');
+            const buttonElement = document.querySelector('#confirmBtn span[data-i18n="btn_start_analysis"]');
+            
+            if (titleElement && simpleTranslations[lang]) {
+                titleElement.innerText = simpleTranslations[lang].title;
+            }
+            if (buttonElement && simpleTranslations[lang]) {
+                buttonElement.innerText = simpleTranslations[lang].button;
+            }
+        }
+        
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initI18n);
+            document.addEventListener('DOMContentLoaded', initUI);
         } else {
             // DOM 已经加载完成
-            initI18n();
+            initUI();
         }
         
         // ==================== 档案初始化弹窗相关函数 ====================
