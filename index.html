@@ -707,8 +707,12 @@
             padding: 20px;
         }
         
+        /* 🚨 手术级修复：确保隐藏的遮罩层不会阻挡按钮点击 */
         .modal-overlay.hidden {
-            display: none;
+            display: none !important;
+            pointer-events: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
         }
         
         .modal-content {
@@ -840,9 +844,12 @@
             pointer-events: all;
         }
 
+        /* 🚨 手术级修复：确保隐藏的加载遮罩层不会阻挡按钮点击 */
         .loading-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
+            display: none !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            visibility: hidden !important;
         }
 
         /* 扫描光束 */
@@ -1090,9 +1097,12 @@
             pointer-events: all;
         }
 
+        /* 🚨 手术级修复：确保隐藏的解密遮罩层不会阻挡按钮点击 */
         .decrypt-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
+            display: none !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            visibility: hidden !important;
         }
 
         /* 绿色激光扫描线 */
@@ -1255,10 +1265,14 @@
         }
         
         /* 确保没有透明层遮挡 */
+        /* 确保遮罩层在隐藏状态下不会阻挡按钮点击 */
         .modal-overlay.hidden,
         .loading-overlay.hidden,
         .decrypt-overlay.hidden {
+            display: none !important;
             pointer-events: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
         }
         
         .modal-overlay:not(.hidden),
@@ -2069,6 +2083,21 @@
             return text;
         }
 
+        // 更新自定义输入框占位符
+        function updateCustomPlaceholders() {
+            // 更新所有带有 data-i18n-placeholder 属性的输入框
+            const placeholderElements = document.querySelectorAll('[data-i18n-placeholder]');
+            placeholderElements.forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (key) {
+                    const text = t(key);
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.placeholder = text;
+                    }
+                }
+            });
+        }
+
         // 初始化 i18n（在 DOM 加载完成后执行）
         function initI18n() {
             // 为所有需要翻译的元素添加 data-i18n 属性并填充文本
@@ -2151,17 +2180,133 @@
         function initEventListeners() {
             console.log('🔧 开始初始化事件监听器...');
             
-            // 页面切换
+            // ==================== 强制绑定确认按钮（最高优先级） ====================
+            const confirmBtn = document.getElementById('confirmBtn');
+            const statusCard = document.getElementById('statusCard');
+            const statusText = document.getElementById('statusText');
+            
+            if (confirmBtn) {
+                console.log('✅ 确认按钮已找到，绑定点击事件（最高优先级）');
+                
+                confirmBtn.addEventListener('click', () => {
+                    // 🚨 点击弹窗：前端埋点 - 立即显示用户点击反馈
+                    alert('前端收到点击！准备发送数据...');
+                    
+                    // 触感反馈
+                    hapticFeedback.impact('medium');
+                    
+                    // 禁用按钮，防止重复点击
+                    confirmBtn.disabled = true;
+                    confirmBtn.style.opacity = '0.6';
+                    confirmBtn.style.cursor = 'not-allowed';
+                    
+                    // 验证自定义输入
+                    if (config.relationship === null || config.stage === null) {
+                        if (statusCard && statusText) {
+                            statusCard.style.display = 'block';
+                            statusText.textContent = t('status_custom_required');
+                            statusText.className = 'text-sm text-amber-400';
+                        }
+                        confirmBtn.disabled = false;
+                        confirmBtn.style.opacity = '1';
+                        confirmBtn.style.cursor = 'pointer';
+                        setTimeout(() => {
+                            if (statusCard) statusCard.style.display = 'none';
+                        }, 2000);
+                        return;
+                    }
+                    
+                    // ========== 获取数据：收集当前选中的'关系类型'和'博弈阶段' ==========
+                    // 直接发送 action: 'start_analysis' 给 Bot，不再弹窗
+                    // 强制确保 action 是 'start_analysis'，匹配 main.py 中的解析逻辑
+                    const dataToSend = {
+                        action: 'start_analysis',  // 强制设置为 'start_analysis'
+                        relationship: config.relationship,
+                        stage: config.stage,
+                        timestamp: Date.now()
+                    };
+                    
+                    // 双重验证：确保 action 严格为 'start_analysis'
+                    if (dataToSend.action !== 'start_analysis') {
+                        console.error('❌ Action 验证失败，强制设置为 start_analysis');
+                        dataToSend.action = 'start_analysis';
+                    }
+                    
+                    console.log('📤 准备发送数据:', dataToSend);
+                    console.log('✅ Action 验证通过:', dataToSend.action);
+                    
+                    // ========== 调用解密动画：先触发 startDecryption() 动画 ==========
+                    startDecryption();
+                    
+                    // ========== 发送并关闭：在动画运行 1.5 秒后，调用 sendData ==========
+                    // 确保按钮在动画期间保持 disabled 状态
+                    setTimeout(() => {
+                        try {
+                            // 再次验证：确保 dataToSend 中的 action 严格匹配 main.py 期望的 'start_analysis'
+                            if (dataToSend.action !== 'start_analysis') {
+                                throw new Error(`Invalid action: ${dataToSend.action}, expected 'start_analysis'`);
+                            }
+                            
+                            console.log('📡 开始调用 sendData，数据:', JSON.stringify(dataToSend));
+                            
+                            // 🚨 发送捕获：使用 try-catch 包裹 sendData 调用
+                            // 使用 window.Telegram.WebApp.sendData() 发送数据
+                            // 这会自动关闭小程序并将数据发回给 Bot
+                            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
+                                console.log('✅ 使用 window.Telegram.WebApp.sendData');
+                                window.Telegram.WebApp.sendData(JSON.stringify(dataToSend));
+                                console.log('✅ sendData 调用成功');
+                                
+                                // 🚨 成功弹窗：发送指令成功
+                                alert('发送指令成功！App即将关闭');
+                            } else if (tg && tg.sendData) {
+                                // 兼容旧版本的 Telegram WebApp API
+                                console.log('✅ 使用 tg.sendData');
+                                tg.sendData(JSON.stringify(dataToSend));
+                                console.log('✅ sendData 调用成功');
+                                
+                                // 🚨 成功弹窗：发送指令成功
+                                alert('发送指令成功！App即将关闭');
+                            } else {
+                                throw new Error('Telegram WebApp API not available');
+                            }
+                        } catch (error) {
+                            console.error('❌ 发送数据失败:', error);
+                            console.error('错误详情:', error.message, error.stack);
+                            
+                            // 停止解密动画
+                            stopDecryption();
+                            
+                            // 🚨 失败弹窗：立即执行 alert，方便在手机上调试
+                            alert('发送失败: ' + (error.message || error));
+                            
+                            // 显示错误提示
+                            if (statusCard && statusText) {
+                                statusCard.style.display = 'block';
+                                statusText.textContent = t('status_failed');
+                                statusText.className = 'text-sm text-red-400';
+                            }
+                            
+                            // 恢复按钮状态
+                            setTimeout(() => {
+                                if (statusCard) statusCard.style.display = 'none';
+                                confirmBtn.disabled = false;
+                                confirmBtn.style.opacity = '1';
+                                confirmBtn.style.cursor = 'pointer';
+                            }, 2000);
+                        }
+                    }, 1500); // 1.5 秒后发送数据
+                });
+            } else {
+                console.error('❌ 未找到确认按钮');
+            }
+            
+            // ==================== 页面切换 ====================
             const pages = document.querySelectorAll('.page');
             const navItems = document.querySelectorAll('.nav-item');
             
             console.log(`📄 找到 ${pages.length} 个页面元素`);
             console.log(`🧭 找到 ${navItems.length} 个导航项`);
-            
-            if (navItems.length === 0) {
-                console.error('❌ 未找到导航项，DOM 可能未加载完成');
-                return;
-            }
             
             navItems.forEach(item => {
                 item.addEventListener('click', () => {
@@ -2191,17 +2336,21 @@
                             targetPageElement.style.transform = 'translateY(0)';
                         });
                     }
+                    
+                    // 如果是档案页面，加载目标列表
+                    if (targetPage === 'folder') {
+                        // 切换到档案页面时，加载目标列表
+                        // 实际应该从 Bot 获取数据，这里使用示例数据
+                        setTimeout(() => {
+                            renderTargetList(sampleTargets);
+                        }, 300);
+                    }
                 });
             });
             
-            // 分段选择器
+            // ==================== 分段选择器 ====================
             const segmentOptions = document.querySelectorAll('.segment-option');
             console.log(`🏷️ 找到 ${segmentOptions.length} 个分段选项`);
-            
-            if (segmentOptions.length === 0) {
-                console.error('❌ 未找到分段选项，DOM 可能未加载完成');
-                return;
-            }
         
             // 自定义输入弹窗元素
             const customInputModal = document.getElementById('customInputModal');
@@ -2321,18 +2470,11 @@
                 console.log(`✓ 选择了 ${type}: ${value}`);
             }
             
-            // 绑定事件（同时支持 click 和 touchstart，确保移动端可用）
+            // 绑定事件（仅使用 click，避免 touchstart 冲突导致点击失效）
             segmentOptions.forEach((option, index) => {
                 console.log(`🔗 绑定事件到选项 ${index + 1}: ${option.textContent}`);
                 
-                // 使用 touchstart 和 click 双重绑定，确保移动端可用
-                option.addEventListener('touchstart', (e) => {
-                    console.log(`👆 Touchstart 事件触发: ${option.textContent}`);
-                    e.preventDefault(); // 防止双击缩放
-                    e.stopPropagation(); // 阻止事件冒泡
-                    handleSegmentOptionClick(option);
-                }, { passive: false });
-                
+                // 仅使用 click 监听器，移动端会自动处理触摸事件
                 option.addEventListener('click', (e) => {
                     console.log(`🖱️ Click 事件触发: ${option.textContent}`);
                     e.preventDefault();
@@ -2341,145 +2483,20 @@
                 });
             });
             
-            // 确认配置按钮（开始分析）
-            const confirmBtn = document.getElementById('confirmBtn');
-            const statusCard = document.getElementById('statusCard');
-            const statusText = document.getElementById('statusText');
-            
-            if (!confirmBtn) {
-                console.error('❌ 未找到确认按钮');
-                return;
-            }
-            
-            console.log('✅ 确认按钮已找到，绑定点击事件');
-            
-            confirmBtn.addEventListener('click', () => {
-            // 触感反馈
-            hapticFeedback.impact('medium');
-            
-            // 禁用按钮，防止重复点击
-            confirmBtn.disabled = true;
-            confirmBtn.style.opacity = '0.6';
-            confirmBtn.style.cursor = 'not-allowed';
-            
-            // 验证自定义输入
-            if (config.relationship === null || config.stage === null) {
-                statusCard.style.display = 'block';
-                statusText.textContent = t('status_custom_required');
-                statusText.className = 'text-sm text-amber-400';
-                confirmBtn.disabled = false;
-                confirmBtn.style.opacity = '1';
-                confirmBtn.style.cursor = 'pointer';
-                setTimeout(() => {
-                    statusCard.style.display = 'none';
-                }, 2000);
-                return;
-            }
-            
-            // 检查是否是新目标（这里暂时假设都是新目标，后续可以根据实际情况判断）
-            // TODO: 从Bot获取现有目标列表，判断是否为新目标
-            const isNewTarget = true; // 占位符：实际应该从Bot获取
-            
-            if (isNewTarget) {
-                // 恢复按钮状态
-                confirmBtn.disabled = false;
-                confirmBtn.style.opacity = '1';
-                confirmBtn.style.cursor = 'pointer';
-                statusCard.style.display = 'none';
-                
-                // 显示档案初始化弹窗
-                showTargetCreationModal();
-                return;
-            }
-            
-            // ========== 获取数据：收集当前选中的'关系类型'和'博弈阶段' ==========
-            const dataToSend = {
-                action: 'start_analysis',
-                relationship: config.relationship,
-                stage: config.stage,
-                timestamp: Date.now()
-            };
-            
-            // ========== 调用解密动画：先触发 startDecryption() 动画 ==========
-            startDecryption();
-            
-            // ========== 发送并关闭：在动画运行 1.5 秒后，调用 sendData ==========
-            setTimeout(() => {
-                // 使用 window.Telegram.WebApp.sendData() 发送数据
-                // 这会自动关闭小程序并将数据发回给 Bot
-                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
-                    try {
-                        window.Telegram.WebApp.sendData(JSON.stringify(dataToSend));
-                    } catch (error) {
-                        console.error('发送数据失败:', error);
-                        
-                        // 停止解密动画
-                        stopDecryption();
-                        
-                        // 显示错误提示
-                        statusCard.style.display = 'block';
-                        statusText.textContent = t('status_failed');
-                        statusText.className = 'text-sm text-red-400';
-                        
-                        // 恢复按钮状态
-                        setTimeout(() => {
-                            statusCard.style.display = 'none';
-                            confirmBtn.disabled = false;
-                            confirmBtn.style.opacity = '1';
-                            confirmBtn.style.cursor = 'pointer';
-                        }, 2000);
-                    }
-                } else if (tg && tg.sendData) {
-                    // 兼容旧版本的 Telegram WebApp API
-                    try {
-                        tg.sendData(JSON.stringify(dataToSend));
-                    } catch (error) {
-                        console.error('发送数据失败:', error);
-                        
-                        // 停止解密动画
-                        stopDecryption();
-                        
-                        // 显示错误提示
-                        statusCard.style.display = 'block';
-                        statusText.textContent = t('status_failed');
-                        statusText.className = 'text-sm text-red-400';
-                        
-                        // 恢复按钮状态
-                        setTimeout(() => {
-                            statusCard.style.display = 'none';
-                            confirmBtn.disabled = false;
-                            confirmBtn.style.opacity = '1';
-                            confirmBtn.style.cursor = 'pointer';
-                        }, 2000);
-                    }
-                } else {
-                    // 非 Telegram 环境，停止解密动画并显示提示
-                    stopDecryption();
-                    
-                    statusCard.style.display = 'block';
-                    statusText.textContent = t('status_not_telegram');
-                    statusText.className = 'text-sm text-amber-400';
-                    
-                    setTimeout(() => {
-                        statusCard.style.display = 'none';
-                        confirmBtn.disabled = false;
-                        confirmBtn.style.opacity = '1';
-                        confirmBtn.style.cursor = 'pointer';
-                    }, 2000);
-                }
-            }, 1500); // 1.5 秒后发送数据
-            });
             
             // 复制邀请码
             const inviteCode = document.getElementById('inviteCode');
             const copyBtn = document.getElementById('copyBtn');
             
             if (copyBtn && inviteCode) {
-                // 生成邀请码（基于用户ID）
-                if (initDataUnsafe.user) {
-                    const userId = initDataUnsafe.user.id;
+                // 生成邀请码（基于用户ID）- 安全访问
+                // 安全获取用户ID（第1113行修复：使用安全模式）
+                const userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : 'unknown';
+                if (userId !== 'unknown') {
                     const code = `ECHO-${userId.toString(16).toUpperCase().slice(0, 4)}-${Date.now().toString(16).toUpperCase().slice(-4)}`;
                     inviteCode.textContent = code;
+                } else {
+                    inviteCode.textContent = 'ECHO-ANON-' + Date.now().toString(16).toUpperCase().slice(-4);
                 }
                 
                 copyBtn.addEventListener('click', async () => {
@@ -2530,12 +2547,14 @@
                 });
             });
             
-            // 初始化用户信息
-            if (initDataUnsafe.user) {
-                const user = initDataUnsafe.user;
+            // 初始化用户信息 - 安全访问
+            // 安全获取用户ID（第1113行修复：使用安全模式）
+            const userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : 'unknown';
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                const user = tg.initDataUnsafe.user;
                 const userIdEl = document.getElementById('userId');
                 const registerTimeEl = document.getElementById('registerTime');
-                if (userIdEl) userIdEl.textContent = user.id || '-';
+                if (userIdEl) userIdEl.textContent = userId || '-';
                 if (registerTimeEl) {
                     // 模拟注册时间（实际应从服务器获取）
                     const registerTime = new Date().toLocaleDateString('zh-CN');
@@ -2730,19 +2749,7 @@
             }
             
             // ==================== 页面切换时加载档案列表 ====================
-            // 页面切换时，如果是档案页面，加载目标列表
-            navItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    const targetPage = item.dataset.page;
-                    if (targetPage === 'folder') {
-                        // 切换到档案页面时，加载目标列表
-                        // 实际应该从 Bot 获取数据，这里使用示例数据
-                        setTimeout(() => {
-                            renderTargetList(sampleTargets);
-                        }, 300);
-                    }
-                });
-            });
+            // 注意：档案页面加载逻辑已合并到上面的 navItems 事件监听器中
             
             // 初始化：如果当前是档案页面，加载数据
             const pageFolder = document.getElementById('page-folder');
@@ -2930,31 +2937,34 @@
         function initUI() {
             console.log('🚀 开始初始化 UI...');
             
+            // 初始化 i18n（这是唯一的翻译来源）
             initI18n();
-            
-            // ==================== 根据 Telegram 用户语言更新 UI ====================
-            // 获取 Telegram 用户的语言设置
-            const userLanguage = window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code || 'en';
-            
-            const simpleTranslations = {
-                'zh': { title: "游戏配置", button: "开始分析" },
-                'en': { title: "Game Configuration", button: "Start Analysis" }
-            };
-            
-            // 根据语言更新 UI
-            const lang = userLanguage.startsWith('zh') ? 'zh' : 'en';
-            const titleElement = document.querySelector('h2[data-i18n="page_title_config"]');
-            const buttonElement = document.querySelector('#confirmBtn span[data-i18n="btn_start_analysis"]');
-            
-            if (titleElement && simpleTranslations[lang]) {
-                titleElement.innerText = simpleTranslations[lang].title;
-            }
-            if (buttonElement && simpleTranslations[lang]) {
-                buttonElement.innerText = simpleTranslations[lang].button;
-            }
             
             // 初始化所有事件监听器（必须在 DOM 加载完成后）
             initEventListeners();
+            
+            // ==================== 自动语言重定向 ====================
+            // 如果当前 URL 没有 lang 参数，尝试读取 tg.initDataUnsafe.user.language_code 并重新跳转
+            const urlParams = new URLSearchParams(window.location.search);
+            if (!urlParams.has('lang')) {
+                // 安全访问 tg 和 initDataUnsafe
+                if (typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp) {
+                    const tg = window.Telegram.WebApp;
+                    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code) {
+                        const userLang = tg.initDataUnsafe.user.language_code;
+                        const normalizedLang = normalizeLangCode(userLang);
+                        
+                        // 如果语言在支持列表中，重定向到带参数的 URL
+                        if (normalizedLang in translations) {
+                            const currentUrl = new URL(window.location.href);
+                            currentUrl.searchParams.set('lang', normalizedLang);
+                            console.log(`🌐 自动语言重定向: ${normalizedLang}`);
+                            window.location.href = currentUrl.toString();
+                            return; // 停止后续执行，等待重定向
+                        }
+                    }
+                }
+            }
             
             console.log('✅ UI 初始化完成');
         }
