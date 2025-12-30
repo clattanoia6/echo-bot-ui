@@ -1517,6 +1517,12 @@
     </div>
     
     <script>
+        // ==================== 全局错误捕获（调试加固） ====================
+        window.onerror = function(msg, url, line) {
+            alert('发生错误: ' + msg + '\n行号: ' + line);
+            return false; // 返回 false 以允许默认错误处理
+        };
+        
         // ==================== 多语言包 (i18n) ====================
         // 与 main.py 中的 LANG_MAPPING 保持完全一致
         const translations = {
