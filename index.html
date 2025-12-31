@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#000000">
     <title>Unsaid Echo MiniApp 2.0</title>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    
+
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
+
     <!-- 立即初始化 Telegram WebApp -->
     <script>
         // 在页面加载时立即调用 ready()
@@ -25,14 +25,14 @@
             console.log('✓ Telegram WebApp initialized');
         }
     </script>
-    
+
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: #000000;
@@ -44,11 +44,11 @@
             padding-left: env(safe-area-inset-left);
             padding-right: env(safe-area-inset-right);
         }
-        
+
         .mono {
             font-family: 'JetBrains Mono', 'Courier New', monospace;
         }
-        
+
         /* 毛玻璃效果 - 硅谷精品风格 */
         .glass {
             background: rgba(255, 255, 255, 0.05);
@@ -56,14 +56,14 @@
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .glass-strong {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         /* 扫描动效 */
         @keyframes scan {
             0% {
@@ -73,12 +73,12 @@
                 transform: translateX(100%);
             }
         }
-        
+
         .scan-animation {
             position: relative;
             overflow: hidden;
         }
-        
+
         .scan-animation::before {
             content: '';
             position: absolute;
@@ -94,7 +94,7 @@
             );
             animation: scan 2s infinite;
         }
-        
+
         /* 输入框扫描流转动画 - 冰蓝色扫描效果 */
         @keyframes inputScan {
             0% {
@@ -118,13 +118,13 @@
                 box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.2);
             }
         }
-        
+
         /* 输入框扫描效果类 */
         .input-scan-effect:focus {
             animation: inputScan 2s infinite ease-in-out;
             border-color: rgba(6, 182, 212, 0.5);
         }
-        
+
         /* 能量平衡仪动画 */
         @keyframes pulse {
             0%, 100% {
@@ -134,11 +134,11 @@
                 opacity: 0.5;
             }
         }
-        
+
         .energy-pulse {
             animation: pulse 2s ease-in-out infinite;
         }
-        
+
         /* 分段选择器样式 - 硅谷精品风格 */
         .segment-container {
             display: flex;
@@ -152,7 +152,7 @@
             gap: 6px;
             justify-content: flex-start; /* 左对齐 */
         }
-        
+
         .segment-option {
             /* 移除 flex: 1，让按钮自适应内容宽度 */
             min-width: 60px; /* 最小宽度 */
@@ -179,18 +179,18 @@
             -moz-user-select: none;
             -ms-user-select: none;
         }
-        
+
         .segment-option:active {
             transform: scale(0.95);
         }
-        
+
         .segment-option.active {
             background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(8, 145, 178, 0.1));
             color: #ffffff;
             box-shadow: 0 0 15px rgba(0, 209, 255, 0.4);
             border: 1px solid rgba(6, 182, 212, 0.3);
         }
-        
+
         /* 底部导航栏 - 硅谷精品风格 */
         .bottom-nav {
             position: fixed;
@@ -204,7 +204,7 @@
             padding: 16px 0 calc(16px + env(safe-area-inset-bottom));
             z-index: 100;
         }
-        
+
         .nav-item {
             display: flex;
             flex-direction: column;
@@ -218,33 +218,33 @@
             border: none;
             cursor: pointer;
         }
-        
+
         .nav-item:active {
             transform: scale(0.95);
         }
-        
+
         .nav-item.active {
             color: #06b6d4;
         }
-        
+
         .nav-item.active .nav-item-icon {
             filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.6));
             transform: scale(1.1);
         }
-        
+
         .nav-item-icon {
             font-size: 24px;
             transition: all 0.3s ease;
             display: inline-block;
         }
-        
+
         .nav-item-label {
             font-size: 9px;
             font-weight: 500;
             letter-spacing: 1px;
             text-transform: uppercase;
         }
-        
+
         /* 页面容器 - 增加呼吸感 */
         .page {
             display: none;
@@ -258,13 +258,13 @@
             transform: translateY(20px);
             transition: opacity 0.3s ease, transform 0.3s ease;
         }
-        
+
         .page.active {
             display: block;
             opacity: 1;
             transform: translateY(0);
         }
-        
+
         /* 页面淡入动画（首次加载） */
         @keyframes fadeInUp {
             from {
@@ -276,11 +276,11 @@
                 transform: translateY(0);
             }
         }
-        
+
         .page.active:first-child {
             animation: fadeInUp 0.4s ease-out;
         }
-        
+
         /* 卡片样式 - 硅谷精品玻璃拟态 */
         .card {
             background: rgba(255, 255, 255, 0.05);
@@ -291,7 +291,7 @@
             padding: 24px;
             margin-bottom: 20px;
         }
-        
+
         /* 按钮样式 - 硅谷精品风格 */
         .btn-primary {
             background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(8, 145, 178, 0.15));
@@ -308,16 +308,16 @@
             overflow: hidden;
             box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
         }
-        
+
         .btn-primary:hover {
             box-shadow: 0 0 25px rgba(6, 182, 212, 0.4);
             border-color: rgba(6, 182, 212, 0.5);
         }
-        
+
         .btn-primary:active {
             transform: scale(0.95);
         }
-        
+
         .btn-secondary {
             background: rgba(245, 158, 11, 0.1);
             color: #f59e0b;
@@ -331,17 +331,17 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
-        
+
         .btn-secondary:hover {
             background: rgba(245, 158, 11, 0.15);
             border-color: rgba(245, 158, 11, 0.4);
             box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
         }
-        
+
         .btn-secondary:active {
             transform: scale(0.95);
         }
-        
+
         /* 输入框样式 - 硅谷精品风格 */
         .input-field {
             background: rgba(255, 255, 255, 0.05);
@@ -355,13 +355,13 @@
             width: 100%;
             margin-bottom: 16px;
         }
-        
+
         .input-field:focus {
             outline: none;
             border-color: #06b6d4;
             box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
         }
-        
+
         /* 能量平衡仪 */
         .energy-meter {
             display: flex;
@@ -369,7 +369,7 @@
             gap: 12px;
             padding: 20px;
         }
-        
+
         .energy-bar {
             flex: 1;
             height: 8px;
@@ -378,14 +378,14 @@
             overflow: hidden;
             position: relative;
         }
-        
+
         .energy-fill {
             height: 100%;
             background: linear-gradient(90deg, #06b6d4, #f59e0b);
             border-radius: 16px;
             transition: width 0.3s;
         }
-        
+
         /* 邀请码复制区 - 硅谷精品风格 */
         .invite-code {
             display: flex;
@@ -399,7 +399,7 @@
             border-radius: 16px;
             font-family: 'JetBrains Mono', monospace;
         }
-        
+
         .copy-btn {
             background: rgba(6, 182, 212, 0.15);
             backdrop-filter: blur(10px);
@@ -412,16 +412,16 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        
+
         .copy-btn:hover {
             background: rgba(6, 182, 212, 0.2);
             box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
         }
-        
+
         .copy-btn:active {
             transform: scale(0.95);
         }
-        
+
         /* 充值卡片 - 硅谷精品风格 */
         .recharge-card {
             background: rgba(255, 255, 255, 0.05);
@@ -429,12 +429,12 @@
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(245, 158, 11, 0.2);
         }
-        
+
         .stars-icon {
             font-size: 24px;
             margin-right: 8px;
         }
-        
+
         /* 呼吸灯边框效果（灵魂拆解按钮） */
         @keyframes pulseBorder {
             0%, 100% {
@@ -448,13 +448,13 @@
                 border-color: #22d3ee;
             }
         }
-        
+
         .btn-soul-dissection {
             position: relative;
             border: 2px solid #06b6d4 !important;
             animation: pulseBorder 2s ease-in-out infinite;
         }
-        
+
         /* 动态扫描线效果 - 情报拦截扫描质感 */
         @keyframes scanLine {
             0% {
@@ -472,7 +472,7 @@
                 opacity: 0;
             }
         }
-        
+
         .scan-line {
             position: fixed;
             top: 0;
@@ -496,7 +496,7 @@
             animation: scanLine 4s linear infinite;
             will-change: top, opacity;
         }
-        
+
         /* Instagram 风格的目标卡片 - 硅谷精品风格 */
         .target-card {
             background: rgba(255, 255, 255, 0.05);
@@ -510,16 +510,16 @@
             transition: all 0.3s ease;
             cursor: pointer;
         }
-        
+
         .target-card:active {
             transform: scale(0.98);
         }
-        
+
         .target-card:hover {
             border-color: rgba(6, 182, 212, 0.3);
             box-shadow: 0 4px 12px rgba(6, 182, 212, 0.1);
         }
-        
+
         /* 状态标签 */
         .status-badge {
             position: absolute;
@@ -537,19 +537,19 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
-        
+
         .status-live {
             background: rgba(239, 68, 68, 0.2);
             color: #ef4444;
             border: 1px solid rgba(239, 68, 68, 0.3);
         }
-        
+
         .status-archived {
             background: rgba(107, 114, 128, 0.2);
             color: #9ca3af;
             border: 1px solid rgba(107, 114, 128, 0.3);
         }
-        
+
         /* 闪烁红点 */
         @keyframes blink {
             0%, 100% {
@@ -559,7 +559,7 @@
                 opacity: 0.3;
             }
         }
-        
+
         .live-dot {
             width: 6px;
             height: 6px;
@@ -568,7 +568,7 @@
             box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
             animation: blink 1.5s ease-in-out infinite;
         }
-        
+
         /* 卡片内容 */
         .target-card-header {
             display: flex;
@@ -577,7 +577,7 @@
             margin-bottom: 16px;
             padding-right: 90px;
         }
-        
+
         .target-avatar {
             width: 48px;
             height: 48px;
@@ -594,7 +594,7 @@
                         inset 0 0 10px rgba(6, 182, 212, 0.1);
             animation: avatarGlow 3s ease-in-out infinite;
         }
-        
+
         /* 头像科技感发光动画 */
         @keyframes avatarGlow {
             0%, 100% {
@@ -608,12 +608,12 @@
                             inset 0 0 15px rgba(6, 182, 212, 0.2);
             }
         }
-        
+
         .target-info {
             flex: 1;
             min-width: 0;
         }
-        
+
         .target-name {
             font-size: 16px;
             font-weight: 600;
@@ -623,19 +623,19 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        
+
         .target-meta {
             font-size: 12px;
             color: rgba(255, 255, 255, 0.5);
         }
-        
+
         /* 主导权指数进度条 */
         .dominance-preview {
             margin-top: 16px;
             padding-top: 16px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .dominance-label {
             display: flex;
             justify-content: space-between;
@@ -644,13 +644,13 @@
             font-size: 11px;
             color: rgba(255, 255, 255, 0.6);
         }
-        
+
         .dominance-value {
             font-weight: 600;
             color: #06b6d4;
             font-family: 'JetBrains Mono', monospace;
         }
-        
+
         .dominance-bar {
             height: 4px;
             background: rgba(255, 255, 255, 0.1);
@@ -658,7 +658,7 @@
             overflow: hidden;
             position: relative;
         }
-        
+
         .dominance-fill {
             height: 100%;
             background: linear-gradient(90deg, #06b6d4, #22d3ee);
@@ -666,30 +666,30 @@
             transition: width 0.3s ease;
             box-shadow: 0 0 8px rgba(6, 182, 212, 0.5);
         }
-        
+
         /* 空状态 */
         .empty-archives {
             text-align: center;
             padding: 60px 20px;
             color: rgba(255, 255, 255, 0.4);
         }
-        
+
         .empty-archives-icon {
             font-size: 48px;
             margin-bottom: 16px;
             opacity: 0.5;
         }
-        
+
         .empty-archives-text {
             font-size: 14px;
             margin-bottom: 8px;
         }
-        
+
         .empty-archives-hint {
             font-size: 12px;
             color: rgba(255, 255, 255, 0.3);
         }
-        
+
         /* 弹窗样式 */
         .modal-overlay {
             position: fixed;
@@ -706,15 +706,11 @@
             z-index: 10000;
             padding: 20px;
         }
-        
-        /* 🚨 手术级修复：确保隐藏的遮罩层不会阻挡按钮点击 */
+
         .modal-overlay.hidden {
-            display: none !important;
-            pointer-events: none !important;
-            opacity: 0 !important;
-            visibility: hidden !important;
+            display: none;
         }
-        
+
         .modal-content {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
@@ -844,12 +840,9 @@
             pointer-events: all;
         }
 
-        /* 🚨 手术级修复：确保隐藏的加载遮罩层不会阻挡按钮点击 */
         .loading-overlay.hidden {
-            display: none !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-            visibility: hidden !important;
+            opacity: 0;
+            pointer-events: none;
         }
 
         /* 扫描光束 */
@@ -1097,12 +1090,9 @@
             pointer-events: all;
         }
 
-        /* 🚨 手术级修复：确保隐藏的解密遮罩层不会阻挡按钮点击 */
         .decrypt-overlay.hidden {
-            display: none !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-            visibility: hidden !important;
+            opacity: 0;
+            pointer-events: none;
         }
 
         /* 绿色激光扫描线 */
@@ -1233,7 +1223,7 @@
             z-index: 10;
             pointer-events: auto !important;
         }
-        
+
         /* 确保所有可交互元素可点击 */
         button, .segment-option, .nav-item, .btn-primary, .btn-secondary {
             pointer-events: auto !important;
@@ -1244,37 +1234,33 @@
             -moz-user-select: none;
             -ms-user-select: none;
         }
-        
+
         /* 确保容器不会阻止点击事件 */
         .segment-container {
             pointer-events: auto !important;
             position: relative;
             z-index: 10;
         }
-        
+
         .card {
             pointer-events: auto !important;
             position: relative;
             z-index: 5;
         }
-        
+
         .page {
             pointer-events: auto !important;
             position: relative;
             z-index: 1;
         }
-        
+
         /* 确保没有透明层遮挡 */
-        /* 确保遮罩层在隐藏状态下不会阻挡按钮点击 */
         .modal-overlay.hidden,
         .loading-overlay.hidden,
         .decrypt-overlay.hidden {
-            display: none !important;
             pointer-events: none !important;
-            opacity: 0 !important;
-            visibility: hidden !important;
         }
-        
+
         .modal-overlay:not(.hidden),
         .loading-overlay:not(.hidden),
         .decrypt-overlay:not(.hidden) {
@@ -1289,7 +1275,7 @@
     <div class="page active" id="page-target">
         <div class="card">
             <h2 class="mono text-xl font-semibold mb-8 text-cyan-400" data-i18n="page_title_config">🎯 博弈配置</h2>
-            
+
             <!-- 关系类型选择器 -->
             <div class="mb-8">
                 <label class="block text-sm font-medium mb-4 text-gray-300" data-i18n="label_relationship">关系类型</label>
@@ -1301,7 +1287,7 @@
                     <button class="segment-option custom-btn" id="rel-custom-btn" data-type="relationship" data-value="custom">✍️ Custom</button>
             </div>
             </div>
-            
+
             <!-- 博弈阶段选择器 -->
             <div class="mb-8">
                 <label class="block text-sm font-medium mb-4 text-gray-300" data-i18n="label_stage">博弈阶段</label>
@@ -1312,7 +1298,7 @@
                     <button class="segment-option custom-btn" id="stage-custom-btn" data-type="stage" data-value="custom">✍️ Custom</button>
                 </div>
             </div>
-            
+
             <!-- 确认按钮（开始分析） -->
             <button class="btn-primary scan-animation btn-soul-dissection" id="confirmBtn">
                 <span class="mono" data-i18n="btn_start_analysis">⚡ 开始分析</span>
@@ -1356,7 +1342,7 @@
                 <span data-i18n="energy_times">次</span>
             </p>
         </div>
-        
+
         <!-- 加密邀请码 -->
         <div class="card">
             <h2 class="mono text-xl font-semibold mb-4 text-cyan-400" data-i18n="page_title_invite">🔐 加密邀请码</h2>
@@ -1366,7 +1352,7 @@
             </div>
             <p class="text-xs text-gray-400 mt-3" data-i18n="invite_desc">分享此邀请码给好友，双方均可获得能量奖励</p>
         </div>
-        
+
         <!-- 充值卡片 -->
         <div class="card recharge-card">
             <h2 class="mono text-xl font-semibold mb-4 text-amber-400" data-i18n="page_title_recharge">💎 能量充值</h2>
@@ -1386,7 +1372,7 @@
                 </button>
             </div>
         </div>
-        
+
         <!-- 用户信息 -->
         <div class="card glass">
             <h2 class="mono text-xl font-semibold mb-4 text-cyan-400" data-i18n="page_title_user">👤 用户信息</h2>
@@ -1420,19 +1406,19 @@
             </button>
         </div>
     </nav>
-    
+
     <!-- 档案初始化弹窗 -->
     <div id="targetCreationModal" class="modal-overlay hidden">
         <div class="modal-content glass">
             <h3 class="mono text-xl font-semibold mb-4 text-cyan-400" data-i18n="target_creation_title">✨ Archive Initialization</h3>
             <p class="text-sm text-gray-400 mb-6" data-i18n="target_creation_desc">Create an archive for your new prey to start the game.</p>
-            
+
             <div class="mb-4">
                 <label for="targetNameInput" class="block text-sm font-medium text-gray-300 mb-2" data-i18n="miniapp_target_name_label">Archive Name</label>
                 <input type="text" id="targetNameInput" class="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:ring-cyan-500 focus:border-cyan-500 input-scan-effect" placeholder="e.g., Ex-A, Boss, That Guy..." data-i18n-placeholder="target_name_placeholder" maxlength="20">
                 <p id="targetNameError" class="text-red-400 text-xs mt-1 hidden" data-i18n="miniapp_target_name_error"></p>
             </div>
-            
+
             <div class="mb-6">
                 <label for="targetIconSelector" class="block text-sm font-medium text-gray-300 mb-2" data-i18n="miniapp_target_icon_label">Archive Icon</label>
                 <div id="targetIconSelector" class="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors">
@@ -1441,7 +1427,7 @@
                 </div>
                 <p id="targetIconError" class="text-red-400 text-xs mt-1 hidden" data-i18n="miniapp_target_icon_error"></p>
             </div>
-            
+
             <div class="flex justify-end space-x-3">
                 <button id="cancelTargetCreation" class="btn-secondary" data-i18n="miniapp_target_creation_cancel">Cancel</button>
                 <button id="confirmTargetCreation" class="btn-primary" data-i18n="miniapp_target_creation_confirm">Confirm Create</button>
@@ -1471,14 +1457,14 @@
     <div id="loading-overlay" class="loading-overlay hidden">
         <!-- 扫描光束 -->
         <div class="scan-beam"></div>
-        
+
         <!-- 十六进制代码流背景 -->
         <div class="hex-stream-container">
             <div class="hex-stream" id="hexStream1"></div>
             <div class="hex-stream" id="hexStream2"></div>
             <div class="hex-stream" id="hexStream3"></div>
         </div>
-        
+
         <!-- 中心内容 -->
         <div class="loading-content">
             <div class="decrypting-text" id="decryptingText">[ DECRYPTING_SIGNAL... ]</div>
@@ -1490,15 +1476,15 @@
     <div id="decrypt-overlay" class="decrypt-overlay hidden">
         <!-- 绿色激光扫描线 -->
         <div class="decrypt-scan-line"></div>
-        
+
         <!-- 中心内容 -->
         <div class="decrypt-content">
             <!-- 信号跳动 -->
             <div class="decrypt-signal" id="decryptSignal">[ SIGNAL_SEARCHING... ]</div>
-            
+
             <!-- 字符混淆区域 -->
             <div class="decrypt-scramble" id="decryptScramble">DECRYPTING...</div>
-            
+
             <!-- 进度数据 -->
             <div class="decrypt-progress" id="decryptProgress">SECURITY_BYPASS: <span id="decryptPercent">0</span>%</div>
         </div>
@@ -1515,14 +1501,8 @@
             </div>
         </div>
     </div>
-    
+
     <script>
-        // ==================== 全局错误捕获（调试加固） ====================
-        window.onerror = function(msg, url, line) {
-            alert('发生错误: ' + msg + '\n行号: ' + line);
-            return false; // 返回 false 以允许默认错误处理
-        };
-        
         // ==================== 多语言包 (i18n) ====================
         // 与 main.py 中的 LANG_MAPPING 保持完全一致
         const translations = {
@@ -2078,30 +2058,15 @@
         function t(key, params = {}) {
             const lang = currentLang in translations ? currentLang : "en";
             let text = translations[lang][key] || translations["en"][key] || key;
-            
+
             // 替换参数
             if (Object.keys(params).length > 0) {
                 Object.keys(params).forEach(param => {
                     text = text.replace(`{${param}}`, params[param]);
                 });
             }
-            
-            return text;
-        }
 
-        // 更新自定义输入框占位符
-        function updateCustomPlaceholders() {
-            // 更新所有带有 data-i18n-placeholder 属性的输入框
-            const placeholderElements = document.querySelectorAll('[data-i18n-placeholder]');
-            placeholderElements.forEach(el => {
-                const key = el.getAttribute('data-i18n-placeholder');
-                if (key) {
-                    const text = t(key);
-                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                        el.placeholder = text;
-                    }
-                }
-            });
+            return text;
         }
 
         // 初始化 i18n（在 DOM 加载完成后执行）
@@ -2125,26 +2090,26 @@
         const isTelegramWebApp = typeof window !== 'undefined' && 
                                   window.Telegram && 
                                   window.Telegram.WebApp;
-        
+
         // Telegram WebApp 初始化（带安全检查）
         const tg = isTelegramWebApp ? window.Telegram.WebApp : null;
-        
+
         if (tg) {
             // ready() 已经在 head 中调用，这里只做扩展和主题设置
             tg.expand();
-            
+
             // 设置主题
             tg.setHeaderColor('#000000');
             tg.setBackgroundColor('#000000');
-            
+
             // 启用关闭确认（可选）
             tg.enableClosingConfirmation();
-            
+
             console.log('✓ Telegram WebApp expanded and configured');
         } else {
             console.warn('Telegram WebApp 不可用，运行在非 Telegram 环境中');
         }
-        
+
         // 安全的触感反馈函数
         const hapticFeedback = {
             // 中等强度触感反馈（用于主要按钮和切换）
@@ -2168,369 +2133,343 @@
                 }
             }
         };
-        
+
         // 获取 initData（带安全检查）
         const initData = tg ? tg.initData : null;
         const initDataUnsafe = tg ? tg.initDataUnsafe : null;
-        
+
         console.log('Telegram WebApp initData:', initData);
         console.log('Telegram WebApp initDataUnsafe:', initDataUnsafe);
-        
-        // 配置对象（全局）
+
+        // 页面切换
+        const pages = document.querySelectorAll('.page');
+        const navItems = document.querySelectorAll('.nav-item');
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const targetPage = item.dataset.page;
+
+                // 触感反馈
+                hapticFeedback.impact('medium');
+
+                // 更新导航状态
+                navItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+
+                // 切换页面（带淡入动画）
+                pages.forEach(page => {
+                    page.classList.remove('active');
+                    // 重置动画状态
+                    page.style.opacity = '0';
+                    page.style.transform = 'translateY(20px)';
+                });
+
+                const targetPageElement = document.getElementById(`page-${targetPage}`);
+                // 使用 requestAnimationFrame 确保动画触发
+                requestAnimationFrame(() => {
+                    targetPageElement.classList.add('active');
+                    targetPageElement.style.opacity = '1';
+                    targetPageElement.style.transform = 'translateY(0)';
+                });
+            });
+        });
+
+        // 分段选择器
+        const segmentOptions = document.querySelectorAll('.segment-option');
         const config = {
             relationship: 'lover',
             stage: 'ambiguous'
         };
-        
-        // 初始化所有事件绑定（必须在 DOM 加载完成后执行）
-        function initEventListeners() {
-            console.log('🔧 开始初始化事件监听器...');
-            
-            // ==================== 强制绑定确认按钮（最高优先级） ====================
-            const confirmBtn = document.getElementById('confirmBtn');
-            const statusCard = document.getElementById('statusCard');
-            const statusText = document.getElementById('statusText');
-            
-            if (confirmBtn) {
-                console.log('✅ 确认按钮已找到，绑定点击事件（最高优先级）');
-                
-                confirmBtn.addEventListener('click', () => {
-                    // 🚨 点击弹窗：前端埋点 - 立即显示用户点击反馈
-                    alert('前端收到点击！准备发送数据...');
-                    
-                    // 触感反馈
-                    hapticFeedback.impact('medium');
-                    
-                    // 禁用按钮，防止重复点击
-                    confirmBtn.disabled = true;
-                    confirmBtn.style.opacity = '0.6';
-                    confirmBtn.style.cursor = 'not-allowed';
-                    
-                    // 验证自定义输入
-                    if (config.relationship === null || config.stage === null) {
-                        if (statusCard && statusText) {
-                            statusCard.style.display = 'block';
-                            statusText.textContent = t('status_custom_required');
-                            statusText.className = 'text-sm text-amber-400';
-                        }
+
+        // 自定义输入弹窗元素
+        const customInputModal = document.getElementById('customInputModal');
+        const customInputModalTitle = document.getElementById('customInputModalTitle');
+        const customInputModalInput = document.getElementById('customInputModalInput');
+        const customInputModalCancel = document.getElementById('customInputModalCancel');
+        const customInputModalConfirm = document.getElementById('customInputModalConfirm');
+
+        // 当前正在编辑的自定义按钮
+        let currentCustomButton = null;
+        let currentCustomType = null;
+
+        // 显示自定义输入弹窗
+        function showCustomInputModal(type, placeholder) {
+            currentCustomType = type;
+            customInputModalTitle.textContent = type === 'relationship' 
+                ? t('custom_placeholder_relationship') 
+                : t('custom_placeholder_stage');
+            customInputModalInput.placeholder = placeholder;
+            customInputModalInput.value = '';
+            customInputModal.classList.add('show');
+            setTimeout(() => {
+                customInputModalInput.focus();
+            }, 100);
+        }
+
+        // 隐藏自定义输入弹窗
+        function hideCustomInputModal() {
+            customInputModal.classList.remove('show');
+            currentCustomButton = null;
+            currentCustomType = null;
+        }
+
+        // 确认自定义输入
+        customInputModalConfirm.addEventListener('click', () => {
+            const value = customInputModalInput.value.trim();
+            if (!value) {
+                return;
+            }
+
+            if (currentCustomButton && currentCustomType) {
+                // 更新按钮文字
+                currentCustomButton.textContent = value;
+
+                // 设为选中状态
+                document.querySelectorAll(`[data-type="${currentCustomType}"]`).forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                currentCustomButton.classList.add('active');
+
+                // 更新配置
+                config[currentCustomType] = `custom:${value}`;
+
+                // 触感反馈
+                hapticFeedback.notification('success');
+            }
+
+            hideCustomInputModal();
+        });
+
+        // 取消自定义输入
+        customInputModalCancel.addEventListener('click', () => {
+            hideCustomInputModal();
+            hapticFeedback.impact('light');
+        });
+
+        // 点击弹窗外部关闭
+        customInputModal.addEventListener('click', (e) => {
+            if (e.target === customInputModal) {
+                hideCustomInputModal();
+            }
+        });
+
+        // 回车确认
+        customInputModalInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                customInputModalConfirm.click();
+            }
+        });
+
+        // 处理分段选择器点击（同时支持 click 和 touchstart）
+        function handleSegmentOptionClick(option) {
+            const type = option.dataset.type;
+            const value = option.dataset.value;
+            const buttonId = option.id;
+
+            // 触感反馈
+            hapticFeedback.impact('medium');
+
+            // 处理自定义按钮
+            if (buttonId === 'rel-custom-btn' || buttonId === 'stage-custom-btn') {
+                currentCustomButton = option;
+                const placeholder = type === 'relationship' 
+                    ? t('custom_placeholder_relationship')
+                    : t('custom_placeholder_stage');
+                showCustomInputModal(type, placeholder);
+                return;
+            }
+
+            // 处理预设选项
+            // 更新UI
+            document.querySelectorAll(`[data-type="${type}"]`).forEach(opt => {
+                opt.classList.remove('active');
+            });
+            option.classList.add('active');
+
+            // 更新配置
+            config[type] = value;
+
+            console.log(`✓ 选择了 ${type}: ${value}`);
+        }
+
+        // 绑定事件（同时支持 click 和 touchstart，确保移动端可用）
+        segmentOptions.forEach(option => {
+            // 使用 touchstart 和 click 双重绑定，确保移动端可用
+            option.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // 防止双击缩放
+                e.stopPropagation(); // 阻止事件冒泡
+                handleSegmentOptionClick(option);
+            }, { passive: false });
+
+            option.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSegmentOptionClick(option);
+            });
+
+            // 添加调试日志
+            option.addEventListener('touchstart', () => {
+                console.log('🔍 Touch event detected on:', option.textContent);
+            }, { passive: true });
+        });
+
+        // 确认配置按钮（开始分析）
+        const confirmBtn = document.getElementById('confirmBtn');
+        const statusCard = document.getElementById('statusCard');
+        const statusText = document.getElementById('statusText');
+
+        confirmBtn.addEventListener('click', () => {
+            // 触感反馈
+            hapticFeedback.impact('medium');
+
+            // 禁用按钮，防止重复点击
+            confirmBtn.disabled = true;
+            confirmBtn.style.opacity = '0.6';
+            confirmBtn.style.cursor = 'not-allowed';
+
+            // 验证自定义输入
+            if (config.relationship === null || config.stage === null) {
+                statusCard.style.display = 'block';
+                statusText.textContent = t('status_custom_required');
+                statusText.className = 'text-sm text-amber-400';
+                confirmBtn.disabled = false;
+                confirmBtn.style.opacity = '1';
+                confirmBtn.style.cursor = 'pointer';
+                setTimeout(() => {
+                    statusCard.style.display = 'none';
+                }, 2000);
+                return;
+            }
+
+            // 检查是否是新目标（这里暂时假设都是新目标，后续可以根据实际情况判断）
+            // TODO: 从Bot获取现有目标列表，判断是否为新目标
+            const isNewTarget = true; // 占位符：实际应该从Bot获取
+
+            if (isNewTarget) {
+                // 恢复按钮状态
+                confirmBtn.disabled = false;
+                confirmBtn.style.opacity = '1';
+                confirmBtn.style.cursor = 'pointer';
+                statusCard.style.display = 'none';
+
+                // 显示档案初始化弹窗
+                showTargetCreationModal();
+                return;
+            }
+
+            // ========== 获取数据：收集当前选中的'关系类型'和'博弈阶段' ==========
+            const dataToSend = {
+                action: 'start_analysis',
+                relationship: config.relationship,
+                stage: config.stage,
+                timestamp: Date.now()
+            };
+
+            // ========== 调用解密动画：先触发 startDecryption() 动画 ==========
+            startDecryption();
+
+            // ========== 发送并关闭：在动画运行 1.5 秒后，调用 sendData ==========
+            setTimeout(() => {
+                // 使用 window.Telegram.WebApp.sendData() 发送数据
+                // 这会自动关闭小程序并将数据发回给 Bot
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
+                    try {
+                        window.Telegram.WebApp.sendData(JSON.stringify(dataToSend));
+                    } catch (error) {
+                        console.error('发送数据失败:', error);
+
+                        // 停止解密动画
+                        stopDecryption();
+
+                        // 显示错误提示
+                        statusCard.style.display = 'block';
+                        statusText.textContent = t('status_failed');
+                        statusText.className = 'text-sm text-red-400';
+
+                        // 恢复按钮状态
+                        setTimeout(() => {
+                            statusCard.style.display = 'none';
+                            confirmBtn.disabled = false;
+                            confirmBtn.style.opacity = '1';
+                            confirmBtn.style.cursor = 'pointer';
+                        }, 2000);
+                    }
+                } else if (tg && tg.sendData) {
+                    // 兼容旧版本的 Telegram WebApp API
+                    try {
+                        tg.sendData(JSON.stringify(dataToSend));
+                    } catch (error) {
+                        console.error('发送数据失败:', error);
+
+                        // 停止解密动画
+                        stopDecryption();
+
+                        // 显示错误提示
+                        statusCard.style.display = 'block';
+                        statusText.textContent = t('status_failed');
+                        statusText.className = 'text-sm text-red-400';
+
+                        // 恢复按钮状态
+                        setTimeout(() => {
+                            statusCard.style.display = 'none';
+                            confirmBtn.disabled = false;
+                            confirmBtn.style.opacity = '1';
+                            confirmBtn.style.cursor = 'pointer';
+                        }, 2000);
+                    }
+                } else {
+                    // 非 Telegram 环境，停止解密动画并显示提示
+                    stopDecryption();
+
+                    statusCard.style.display = 'block';
+                    statusText.textContent = t('status_not_telegram');
+                    statusText.className = 'text-sm text-amber-400';
+
+                    setTimeout(() => {
+                        statusCard.style.display = 'none';
                         confirmBtn.disabled = false;
                         confirmBtn.style.opacity = '1';
                         confirmBtn.style.cursor = 'pointer';
-                        setTimeout(() => {
-                            if (statusCard) statusCard.style.display = 'none';
-                        }, 2000);
-                        return;
-                    }
-                    
-                    // ========== 获取数据：收集当前选中的'关系类型'和'博弈阶段' ==========
-                    // 直接发送 action: 'start_analysis' 给 Bot，不再弹窗
-                    // 强制确保 action 是 'start_analysis'，匹配 main.py 中的解析逻辑
-                    const dataToSend = {
-                        action: 'start_analysis',  // 强制设置为 'start_analysis'
-                        relationship: config.relationship,
-                        stage: config.stage,
-                        timestamp: Date.now()
-                    };
-                    
-                    // 双重验证：确保 action 严格为 'start_analysis'
-                    if (dataToSend.action !== 'start_analysis') {
-                        console.error('❌ Action 验证失败，强制设置为 start_analysis');
-                        dataToSend.action = 'start_analysis';
-                    }
-                    
-                    console.log('📤 准备发送数据:', dataToSend);
-                    console.log('✅ Action 验证通过:', dataToSend.action);
-                    
-                    // ========== 调用解密动画：先触发 startDecryption() 动画 ==========
-                    startDecryption();
-                    
-                    // ========== 发送并关闭：在动画运行 1.5 秒后，调用 sendData ==========
-                    // 确保按钮在动画期间保持 disabled 状态
-                    setTimeout(() => {
-                        try {
-                            // 再次验证：确保 dataToSend 中的 action 严格匹配 main.py 期望的 'start_analysis'
-                            if (dataToSend.action !== 'start_analysis') {
-                                throw new Error(`Invalid action: ${dataToSend.action}, expected 'start_analysis'`);
-                            }
-                            
-                            console.log('📡 开始调用 sendData，数据:', JSON.stringify(dataToSend));
-                            
-                            // 🚨 发送捕获：使用 try-catch 包裹 sendData 调用
-                            // 使用 window.Telegram.WebApp.sendData() 发送数据
-                            // 这会自动关闭小程序并将数据发回给 Bot
-                            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
-                                console.log('✅ 使用 window.Telegram.WebApp.sendData');
-                                window.Telegram.WebApp.sendData(JSON.stringify(dataToSend));
-                                console.log('✅ sendData 调用成功');
-                                
-                                // 🚨 成功弹窗：发送指令成功
-                                alert('发送指令成功！App即将关闭');
-                            } else if (tg && tg.sendData) {
-                                // 兼容旧版本的 Telegram WebApp API
-                                console.log('✅ 使用 tg.sendData');
-                                tg.sendData(JSON.stringify(dataToSend));
-                                console.log('✅ sendData 调用成功');
-                                
-                                // 🚨 成功弹窗：发送指令成功
-                                alert('发送指令成功！App即将关闭');
-                            } else {
-                                throw new Error('Telegram WebApp API not available');
-                            }
-                        } catch (error) {
-                            console.error('❌ 发送数据失败:', error);
-                            console.error('错误详情:', error.message, error.stack);
-                            
-                            // 停止解密动画
-                            stopDecryption();
-                            
-                            // 🚨 失败弹窗：立即执行 alert，方便在手机上调试
-                            alert('发送失败: ' + (error.message || error));
-                            
-                            // 显示错误提示
-                            if (statusCard && statusText) {
-                                statusCard.style.display = 'block';
-                                statusText.textContent = t('status_failed');
-                                statusText.className = 'text-sm text-red-400';
-                            }
-                            
-                            // 恢复按钮状态
-                            setTimeout(() => {
-                                if (statusCard) statusCard.style.display = 'none';
-                                confirmBtn.disabled = false;
-                                confirmBtn.style.opacity = '1';
-                                confirmBtn.style.cursor = 'pointer';
-                            }, 2000);
-                        }
-                    }, 1500); // 1.5 秒后发送数据
-                });
-            } else {
-                console.error('❌ 未找到确认按钮');
-            }
-            
-            // ==================== 页面切换 ====================
-            const pages = document.querySelectorAll('.page');
-            const navItems = document.querySelectorAll('.nav-item');
-            
-            console.log(`📄 找到 ${pages.length} 个页面元素`);
-            console.log(`🧭 找到 ${navItems.length} 个导航项`);
-            
-            navItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    const targetPage = item.dataset.page;
-                    
-                    // 触感反馈
-                    hapticFeedback.impact('medium');
-                    
-                    // 更新导航状态
-                    navItems.forEach(nav => nav.classList.remove('active'));
-                    item.classList.add('active');
-                    
-                    // 切换页面（带淡入动画）
-                    pages.forEach(page => {
-                        page.classList.remove('active');
-                        // 重置动画状态
-                        page.style.opacity = '0';
-                        page.style.transform = 'translateY(20px)';
-                    });
-                    
-                    const targetPageElement = document.getElementById(`page-${targetPage}`);
-                    if (targetPageElement) {
-                        // 使用 requestAnimationFrame 确保动画触发
-                        requestAnimationFrame(() => {
-                            targetPageElement.classList.add('active');
-                            targetPageElement.style.opacity = '1';
-                            targetPageElement.style.transform = 'translateY(0)';
-                        });
-                    }
-                    
-                    // 如果是档案页面，加载目标列表
-                    if (targetPage === 'folder') {
-                        // 切换到档案页面时，加载目标列表
-                        // 实际应该从 Bot 获取数据，这里使用示例数据
-                        setTimeout(() => {
-                            renderTargetList(sampleTargets);
-                        }, 300);
-                    }
-                });
-            });
-            
-            // ==================== 分段选择器 ====================
-            const segmentOptions = document.querySelectorAll('.segment-option');
-            console.log(`🏷️ 找到 ${segmentOptions.length} 个分段选项`);
-        
-            // 自定义输入弹窗元素
-            const customInputModal = document.getElementById('customInputModal');
-            const customInputModalTitle = document.getElementById('customInputModalTitle');
-            const customInputModalInput = document.getElementById('customInputModalInput');
-            const customInputModalCancel = document.getElementById('customInputModalCancel');
-            const customInputModalConfirm = document.getElementById('customInputModalConfirm');
-            
-            if (!customInputModal || !customInputModalTitle || !customInputModalInput) {
-                console.error('❌ 未找到自定义输入弹窗元素');
-                return;
-            }
-            
-            // 当前正在编辑的自定义按钮
-            let currentCustomButton = null;
-            let currentCustomType = null;
-        
-            // 显示自定义输入弹窗
-            function showCustomInputModal(type, placeholder) {
-                currentCustomType = type;
-                customInputModalTitle.textContent = type === 'relationship' 
-                    ? t('custom_placeholder_relationship') 
-                    : t('custom_placeholder_stage');
-                customInputModalInput.placeholder = placeholder;
-                customInputModalInput.value = '';
-                customInputModal.classList.add('show');
-                setTimeout(() => {
-                    customInputModalInput.focus();
-                }, 100);
-            }
-            
-            // 隐藏自定义输入弹窗
-            function hideCustomInputModal() {
-                customInputModal.classList.remove('show');
-                currentCustomButton = null;
-                currentCustomType = null;
-            }
-            
-            // 确认自定义输入
-            customInputModalConfirm.addEventListener('click', () => {
-                const value = customInputModalInput.value.trim();
-                if (!value) {
-                    return;
+                    }, 2000);
                 }
-                
-                if (currentCustomButton && currentCustomType) {
-                    // 更新按钮文字
-                    currentCustomButton.textContent = value;
-                    
-                    // 设为选中状态
-                    document.querySelectorAll(`[data-type="${currentCustomType}"]`).forEach(opt => {
-                        opt.classList.remove('active');
-                    });
-                    currentCustomButton.classList.add('active');
-                    
-                    // 更新配置
-                    config[currentCustomType] = `custom:${value}`;
-                    
-                    // 触感反馈
-                    hapticFeedback.notification('success');
-                }
-                
-                hideCustomInputModal();
-            });
-            
-            // 取消自定义输入
-            customInputModalCancel.addEventListener('click', () => {
-                hideCustomInputModal();
-                hapticFeedback.impact('light');
-            });
-            
-            // 点击弹窗外部关闭
-            customInputModal.addEventListener('click', (e) => {
-                if (e.target === customInputModal) {
-                    hideCustomInputModal();
-                }
-            });
-            
-            // 回车确认
-            customInputModalInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    customInputModalConfirm.click();
-                }
-            });
-            
-            // 处理分段选择器点击（同时支持 click 和 touchstart）
-            function handleSegmentOptionClick(option) {
-                const type = option.dataset.type;
-                const value = option.dataset.value;
-                const buttonId = option.id;
-                
-                console.log(`🖱️ 点击了分段选项: ${type} = ${value} (ID: ${buttonId})`);
-                
-                // 触感反馈
-                hapticFeedback.impact('medium');
-                
-                // 处理自定义按钮
-                if (buttonId === 'rel-custom-btn' || buttonId === 'stage-custom-btn') {
-                    currentCustomButton = option;
-                    const placeholder = type === 'relationship' 
-                        ? t('custom_placeholder_relationship')
-                        : t('custom_placeholder_stage');
-                    showCustomInputModal(type, placeholder);
-                    return;
-                }
-                
-                // 处理预设选项
-                // 更新UI
-                document.querySelectorAll(`[data-type="${type}"]`).forEach(opt => {
-                    opt.classList.remove('active');
-                });
-                option.classList.add('active');
-                
-                // 更新配置
-                config[type] = value;
-                
-                console.log(`✓ 选择了 ${type}: ${value}`);
-            }
-            
-            // 绑定事件（仅使用 click，避免 touchstart 冲突导致点击失效）
-            segmentOptions.forEach((option, index) => {
-                console.log(`🔗 绑定事件到选项 ${index + 1}: ${option.textContent}`);
-                
-                // 仅使用 click 监听器，移动端会自动处理触摸事件
-                option.addEventListener('click', (e) => {
-                    console.log(`🖱️ Click 事件触发: ${option.textContent}`);
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleSegmentOptionClick(option);
-                });
-            });
-            
-            
-            // 复制邀请码
-            const inviteCode = document.getElementById('inviteCode');
-            const copyBtn = document.getElementById('copyBtn');
-            
-            if (copyBtn && inviteCode) {
-                // 生成邀请码（基于用户ID）- 安全访问
-                // 安全获取用户ID（修复崩溃：使用安全模式）
-                const userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : 'unknown';
-                if (userId !== 'unknown') {
-                    const code = `ECHO-${userId.toString(16).toUpperCase().slice(0, 4)}-${Date.now().toString(16).toUpperCase().slice(-4)}`;
-                    inviteCode.textContent = code;
-                } else {
-                    inviteCode.textContent = 'ECHO-ANON-' + Date.now().toString(16).toUpperCase().slice(-4);
-                }
-                
-                copyBtn.addEventListener('click', async () => {
+            }, 1500); // 1.5 秒后发送数据
+        });
+
+        // 复制邀请码
+        const inviteCode = document.getElementById('inviteCode');
+        const copyBtn = document.getElementById('copyBtn');
+
+        // 生成邀请码（基于用户ID）
+        if (initDataUnsafe.user) {
+            const userId = initDataUnsafe.user.id;
+            const code = `ECHO-${userId.toString(16).toUpperCase().slice(0, 4)}-${Date.now().toString(16).toUpperCase().slice(-4)}`;
+            inviteCode.textContent = code;
+        }
+
+        copyBtn.addEventListener('click', async () => {
             // 触感反馈（成功通知）
             hapticFeedback.notification('success');
-            
+
             try {
                 await navigator.clipboard.writeText(inviteCode.textContent);
                 copyBtn.textContent = t('btn_copied');
                 setTimeout(() => {
                     copyBtn.textContent = t('btn_copy');
                 }, 2000);
-                } catch (err) {
-                    console.error('复制失败:', err);
-                }
-                });
+            } catch (err) {
+                console.error('复制失败:', err);
             }
-            
-            // 充值按钮
-            const rechargeButtons = document.querySelectorAll('[data-amount]');
-            console.log(`💰 找到 ${rechargeButtons.length} 个充值按钮`);
-            rechargeButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
+        });
+
+        // 充值按钮
+        const rechargeButtons = document.querySelectorAll('[data-amount]');
+        rechargeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
                 const amount = btn.dataset.amount;
-                
+
                 // 触感反馈（成功通知）
                 hapticFeedback.notification('success');
-                
+
                 // 发送充值请求
                 if (tg && tg.sendData) {
                     const data = JSON.stringify({
@@ -2538,260 +2477,57 @@
                         amount: parseInt(amount),
                         timestamp: Date.now()
                     });
-                    
+
                     tg.sendData(data);
                 }
-                
+
                 // 显示提示
                 statusCard.style.display = 'block';
                 statusText.textContent = t('status_recharge', { amount: amount });
                 statusText.className = 'text-sm text-amber-400';
-                
+
                 setTimeout(() => {
                     statusCard.style.display = 'none';
                 }, 3000);
-                });
             });
-            
-            // 初始化用户信息 - 安全访问
-            // 安全获取用户ID（修复崩溃：使用安全模式）
-            const userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : 'unknown';
-            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                const user = tg.initDataUnsafe.user;
-                const userIdEl = document.getElementById('userId');
-                const registerTimeEl = document.getElementById('registerTime');
-                if (userIdEl) userIdEl.textContent = userId || '-';
-                if (registerTimeEl) {
-                    // 模拟注册时间（实际应从服务器获取）
-                    const registerTime = new Date().toLocaleDateString('zh-CN');
-                    registerTimeEl.textContent = registerTime;
-                }
-            }
-            
-            // ==================== 档案初始化弹窗相关事件绑定 ====================
-            const cancelTargetCreationBtn = document.getElementById('cancelTargetCreation');
-            const confirmTargetCreationBtn = document.getElementById('confirmTargetCreation');
-            const targetIconSelectorBtn = document.getElementById('targetIconSelector');
-            const closeEmojiPickerBtn = document.getElementById('closeEmojiPicker');
-            const emojiPickerModal = document.getElementById('emojiPickerModal');
-            const targetCreationModal = document.getElementById('targetCreationModal');
-            const emojiSearchInput = document.getElementById('emojiSearchInput');
-            
-            if (cancelTargetCreationBtn) {
-                cancelTargetCreationBtn.addEventListener('click', () => {
-                    hapticFeedback.impact('light');
-                    hideTargetCreationModal();
-                    showToast(t('target_creation_cancelled'), 'info');
-                    
-                    // 发送取消消息到Bot
-                    if (tg && tg.sendData) {
-                        tg.sendData(JSON.stringify({
-                            action: 'cancel_target_creation',
-                            timestamp: Date.now()
-                        }));
-                    }
-                });
-            }
-            
-            if (confirmTargetCreationBtn) {
-                confirmTargetCreationBtn.addEventListener('click', async () => {
-                    hapticFeedback.impact('medium');
-                    const targetName = document.getElementById('targetNameInput').value.trim();
-                    const targetIcon = currentSelectedIcon;
-                    
-                    let isValid = true;
-                    
-                    // 验证名称
-                    if (!targetName || targetName.length === 0 || targetName.length > 20) {
-                        document.getElementById('targetNameError').classList.remove('hidden');
-                        isValid = false;
-                    } else {
-                        document.getElementById('targetNameError').classList.add('hidden');
-                    }
-                    
-                    // 验证图标（简单检查，更严格的验证可以使用正则表达式）
-                    if (!targetIcon || !/\p{Emoji}/u.test(targetIcon)) {
-                        document.getElementById('targetIconError').classList.remove('hidden');
-                        isValid = false;
-                    } else {
-                        document.getElementById('targetIconError').classList.add('hidden');
-                    }
-                    
-                    if (!isValid) {
-                        return;
-                    }
-                    
-                    // 发送数据到Bot创建新目标
-                    if (tg && tg.sendData) {
-                        const data = JSON.stringify({
-                            action: 'create_new_target',
-                            alias: targetName,
-                            icon: targetIcon,
-                            relationship: config.relationship,
-                            stage: config.stage,
-                            timestamp: Date.now()
-                        });
-                        
-                        try {
-                            tg.sendData(data);
-                            showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
-                            hideTargetCreationModal();
-                            
-                            // 延迟后发送分析配置并显示解密动画
-                            setTimeout(() => {
-                                // ========== 获取数据：收集当前选中的'关系类型'和'博弈阶段' ==========
-                                const analysisData = {
-                                    action: 'start_analysis',
-                                    relationship: config.relationship,
-                                    stage: config.stage,
-                                    timestamp: Date.now()
-                                };
-                                
-                                // ========== 调用解密动画：先触发 startDecryption() 动画 ==========
-                                startDecryption();
-                                
-                                // ========== 发送并关闭：在动画运行 1.5 秒后，调用 sendData ==========
-                                setTimeout(() => {
-                                    // 使用 window.Telegram.WebApp.sendData() 发送数据
-                                    // 这会自动关闭小程序并将数据发回给 Bot
-                                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
-                                        try {
-                                            window.Telegram.WebApp.sendData(JSON.stringify(analysisData));
-                                        } catch (error) {
-                                            console.error('发送数据失败:', error);
-                                            stopDecryption();
-                                            showToast(t('status_failed'), 'error');
-                                        }
-                                    } else if (tg && tg.sendData) {
-                                        // 兼容旧版本的 Telegram WebApp API
-                                        try {
-                                            tg.sendData(JSON.stringify(analysisData));
-                                        } catch (error) {
-                                            console.error('发送数据失败:', error);
-                                            stopDecryption();
-                                            showToast(t('status_failed'), 'error');
-                                        }
-                                    } else {
-                                        stopDecryption();
-                                        showToast(t('status_not_telegram'), 'error');
-                                    }
-                                }, 1500); // 1.5 秒后发送数据
-                            }, 500);
-                        } catch (error) {
-                            console.error('发送数据失败:', error);
-                            showToast(t('miniapp_target_creation_failed'), 'error');
-                        }
-                    }
-                });
-            }
-            
-            if (targetIconSelectorBtn) {
-                targetIconSelectorBtn.addEventListener('click', () => {
-                    hapticFeedback.impact('light');
-                    showEmojiPicker();
-                });
-            }
-            
-            if (closeEmojiPickerBtn) {
-                closeEmojiPickerBtn.addEventListener('click', () => {
-                    hapticFeedback.impact('light');
-                    hideEmojiPicker();
-                });
-            }
-            
-            if (emojiPickerModal) {
-                emojiPickerModal.addEventListener('click', (e) => {
-                    if (e.target.id === 'emojiPickerModal') {
-                        hideEmojiPicker();
-                    }
-                });
-            }
-            
-            if (targetCreationModal) {
-                targetCreationModal.addEventListener('click', (e) => {
-                    if (e.target.id === 'targetCreationModal') {
-                        hideTargetCreationModal();
-                    }
-                });
-            }
-            
-            if (emojiSearchInput) {
-                emojiSearchInput.addEventListener('input', (e) => {
-                    const searchTerm = e.target.value.toLowerCase();
-                    const emojiList = document.getElementById('emojiList');
-                    const noResults = document.getElementById('noEmojiResults');
-                    
-                    if (!searchTerm) {
-                        loadEmojiCategory('recent');
-                        if (noResults) noResults.classList.add('hidden');
-                        return;
-                    }
-                    
-                    // 搜索所有分类
-                    const allEmojis = Object.values(emojiCategories).flat();
-                    const filtered = allEmojis.filter(emoji => {
-                        // 简单的搜索逻辑（可以根据需要改进）
-                        return emoji.includes(searchTerm) || searchTerm.includes(emoji);
-                    });
-                    
-                    if (emojiList) emojiList.innerHTML = '';
-                    
-                    if (filtered.length === 0) {
-                        if (noResults) noResults.classList.remove('hidden');
-                    } else {
-                        if (noResults) noResults.classList.add('hidden');
-                        filtered.forEach(emoji => {
-                            const emojiBtn = document.createElement('button');
-                            emojiBtn.className = 'text-2xl p-2 hover:bg-gray-700 rounded-lg transition-colors cursor-pointer';
-                            emojiBtn.textContent = emoji;
-                            emojiBtn.addEventListener('click', () => {
-                                hapticFeedback.impact('light');
-                                selectEmoji(emoji);
-                            });
-                            if (emojiList) emojiList.appendChild(emojiBtn);
-                        });
-                    }
-                });
-            }
-            
-            // ==================== 页面切换时加载档案列表 ====================
-            // 注意：档案页面加载逻辑已合并到上面的 navItems 事件监听器中
-            
-            // 初始化：如果当前是档案页面，加载数据
-            const pageFolder = document.getElementById('page-folder');
-            if (pageFolder && pageFolder.classList.contains('active')) {
-                renderTargetList(sampleTargets);
-            }
-            
-            console.log('✅ 所有事件监听器已初始化完成');
+        });
+
+        // 初始化用户信息
+        if (initDataUnsafe.user) {
+            const user = initDataUnsafe.user;
+            document.getElementById('userId').textContent = user.id || '-';
+
+            // 模拟注册时间（实际应从服务器获取）
+            const registerTime = new Date().toLocaleDateString('zh-CN');
+            document.getElementById('registerTime').textContent = registerTime;
         }
-        
+
         // 监听来自 Bot 的消息（带安全检查）
         if (tg && tg.onEvent) {
             tg.onEvent('viewportChanged', () => {
                 console.log('Viewport changed');
             });
         }
-        
+
         // 错误处理
         window.addEventListener('error', (e) => {
             console.error('Error:', e);
         });
-        
+
         // 生成目标卡片
         function createTargetCard(target) {
             const card = document.createElement('div');
             card.className = 'target-card';
-            
+
             // 状态标签
             const statusClass = target.status === 'live' ? 'status-live' : 'status-archived';
             const statusText = target.status === 'live' ? t('status_live') : t('status_archived');
             const liveDot = target.status === 'live' ? '<span class="live-dot"></span>' : '';
-            
+
             // 主导权指数（0-100）
             const dominanceValue = target.dominance || 0;
             const dominanceColor = dominanceValue >= 70 ? '#06b6d4' : dominanceValue >= 40 ? '#f59e0b' : '#ef4444';
-            
+
             // 翻译关系类型和阶段（处理中英文键名映射）
             const relationshipMap = {
                 'lover': 'relationship_lover',
@@ -2811,14 +2547,14 @@
                 '冷战': 'stage_cold',
                 '收割': 'stage_harvest'
             };
-            
+
             const relationshipKey = relationshipMap[target.relationship] || null;
             const stageKey = stageMap[target.stage] || null;
-            
+
             // 处理自定义关系类型和阶段（如果包含 custom: 前缀）
             let relationshipText = relationshipKey ? t(relationshipKey) : (target.relationship || t('unclassified'));
             let stageText = stageKey ? t(stageKey) : (target.stage || t('not_set'));
-            
+
             // 如果关系类型或阶段包含 custom: 前缀，提取自定义值
             if (target.relationship && target.relationship.startsWith('custom:')) {
                 relationshipText = target.relationship.replace('custom:', '');
@@ -2826,11 +2562,11 @@
             if (target.stage && target.stage.startsWith('custom:')) {
                 stageText = target.stage.replace('custom:', '');
             }
-            
+
             // 图标默认值：优先使用 target.icon，如果没有则使用 👤 或 🎯
             const defaultIcon = '👤'; // 默认使用 👤
             const targetIcon = target.icon || defaultIcon;
-            
+
             card.innerHTML = `
                 <div class="status-badge ${statusClass}">
                     ${liveDot}
@@ -2853,7 +2589,7 @@
                     </div>
                 </div>
             `;
-            
+
             // 点击卡片事件
             card.addEventListener('click', () => {
                 hapticFeedback.impact('medium');
@@ -2867,14 +2603,14 @@
                     tg.sendData(data);
                 }
             });
-            
+
             return card;
         }
-        
+
         // 渲染目标列表
         function renderTargetList(targets) {
             const targetList = document.getElementById('targetList');
-            
+
             if (!targets || targets.length === 0) {
                 targetList.innerHTML = `
                     <div class="empty-archives">
@@ -2885,14 +2621,14 @@
                 `;
                 return;
             }
-            
+
             targetList.innerHTML = '';
             targets.forEach(target => {
                 const card = createTargetCard(target);
                 targetList.appendChild(card);
             });
         }
-        
+
         // 示例数据（实际应从 Bot 或服务器获取）
         // 注意：name 字段使用英文占位符，实际渲染时会根据 lang 环境进行翻译
         const sampleTargets = [
@@ -2927,7 +2663,7 @@
                 dominance: 85
             }
         ];
-        
+
         // 监听来自 Bot 的数据（实际实现中应该通过 Telegram WebApp 接收数据）
         // 这里先使用示例数据
         if (tg && tg.onEvent) {
@@ -2936,108 +2672,119 @@
                 renderTargetList(sampleTargets);
             });
         }
-        
-        // 注意：页面切换时加载档案列表的代码已移到 initEventListeners() 函数中
 
-        // DOM 加载完成后初始化 i18n 和事件监听器
-        function initUI() {
-            console.log('🚀 开始初始化 UI...');
-            
-            // 初始化 i18n（这是唯一的翻译来源）
-            initI18n();
-            
-            // 初始化所有事件监听器（必须在 DOM 加载完成后）
-            initEventListeners();
-            
-            // ==================== 自动语言重定向 ====================
-            // 如果当前 URL 没有 lang 参数，尝试读取 tg.initDataUnsafe.user.language_code 并重新跳转
-            const urlParams = new URLSearchParams(window.location.search);
-            if (!urlParams.has('lang')) {
-                // 安全访问 tg 和 initDataUnsafe
-                if (typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp) {
-                    const tg = window.Telegram.WebApp;
-                    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code) {
-                        const userLang = tg.initDataUnsafe.user.language_code;
-                        const normalizedLang = normalizeLangCode(userLang);
-                        
-                        // 如果语言在支持列表中，重定向到带参数的 URL
-                        if (normalizedLang in translations) {
-                            const currentUrl = new URL(window.location.href);
-                            currentUrl.searchParams.set('lang', normalizedLang);
-                            console.log(`🌐 自动语言重定向: ${normalizedLang}`);
-                            window.location.href = currentUrl.toString();
-                            return; // 停止后续执行，等待重定向
-                        }
-                    }
+        // 页面切换时，如果是档案页面，加载目标列表
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const targetPage = item.dataset.page;
+                if (targetPage === 'folder') {
+                    // 切换到档案页面时，加载目标列表
+                    // 实际应该从 Bot 获取数据，这里使用示例数据
+                    setTimeout(() => {
+                        renderTargetList(sampleTargets);
+                    }, 300);
                 }
-            }
-            
-            console.log('✅ UI 初始化完成');
-        }
-        
-        // 确保 DOM 完全加载后再初始化
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                console.log('📄 DOM 加载完成，开始初始化');
-                initUI();
             });
+        });
+
+        // 初始化：如果当前是档案页面，加载数据
+        if (document.getElementById('page-folder').classList.contains('active')) {
+            renderTargetList(sampleTargets);
+        }
+
+        // DOM 加载完成后初始化 i18n
+        function initUI() {
+            initI18n();
+
+            // ==================== 根据 Telegram 用户语言更新 UI ====================
+            // 获取 Telegram 用户的语言设置
+            const userLanguage = window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code || 'en';
+
+            const simpleTranslations = {
+                'zh': { title: "游戏配置", button: "开始分析" },
+                'en': { title: "Game Configuration", button: "Start Analysis" }
+            };
+
+            // 根据语言更新 UI
+            const lang = userLanguage.startsWith('zh') ? 'zh' : 'en';
+            const titleElement = document.querySelector('h2[data-i18n="page_title_config"]');
+            const buttonElement = document.querySelector('#confirmBtn span[data-i18n="btn_start_analysis"]');
+
+            if (titleElement && simpleTranslations[lang]) {
+                titleElement.innerText = simpleTranslations[lang].title;
+            }
+            if (buttonElement && simpleTranslations[lang]) {
+                buttonElement.innerText = simpleTranslations[lang].button;
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initUI);
         } else {
             // DOM 已经加载完成
-            console.log('📄 DOM 已就绪，立即初始化');
-            // 使用 setTimeout 确保所有元素都已渲染
-            setTimeout(() => {
-                initUI();
-            }, 100);
+            initUI();
         }
-        
+
         // ==================== 档案初始化弹窗相关函数 ====================
         let currentSelectedIcon = '🎯'; // 默认图标
-        
+
         // 显示档案初始化弹窗
         function showTargetCreationModal() {
             const modal = document.getElementById('targetCreationModal');
             const nameInput = document.getElementById('targetNameInput');
             const iconSelector = document.getElementById('targetIconSelector');
             const selectedIcon = document.getElementById('selectedIcon');
-            
+
             // 重置表单
             nameInput.value = t('new_target_default_name');
             currentSelectedIcon = '🎯';
             selectedIcon.textContent = '🎯';
             document.getElementById('targetNameError').classList.add('hidden');
             document.getElementById('targetIconError').classList.add('hidden');
-            
+
             // 显示弹窗
             modal.classList.remove('hidden');
-            
+
             // 隐藏主按钮（如果存在）
             if (tg && tg.MainButton) {
                 tg.MainButton.hide();
             }
         }
-        
+
         // 隐藏档案初始化弹窗
         function hideTargetCreationModal() {
             const modal = document.getElementById('targetCreationModal');
             modal.classList.add('hidden');
-            
+
             // 显示主按钮（如果存在）
             if (tg && tg.MainButton) {
                 tg.MainButton.show();
             }
         }
-        
-        // 注意：档案初始化弹窗的事件绑定已移到 initEventListeners() 函数中
-        
-        // 确认创建档案（已移到 initEventListeners 中，这里保留注释）
-        /*
+
+        // 取消创建档案
+        document.getElementById('cancelTargetCreation').addEventListener('click', () => {
+            hapticFeedback.impact('light');
+            hideTargetCreationModal();
+            showToast(t('target_creation_cancelled'), 'info');
+
+            // 发送取消消息到Bot
+            if (tg && tg.sendData) {
+                tg.sendData(JSON.stringify({
+                    action: 'cancel_target_creation',
+                    timestamp: Date.now()
+                }));
+            }
+        });
+
+        // 确认创建档案
         document.getElementById('confirmTargetCreation').addEventListener('click', async () => {
             hapticFeedback.impact('medium');
             const targetName = document.getElementById('targetNameInput').value.trim();
             const targetIcon = currentSelectedIcon;
-            
+
             let isValid = true;
-            
+
             // 验证名称
             if (!targetName || targetName.length === 0 || targetName.length > 20) {
                 document.getElementById('targetNameError').classList.remove('hidden');
@@ -3045,7 +2792,7 @@
             } else {
                 document.getElementById('targetNameError').classList.add('hidden');
             }
-            
+
             // 验证图标（简单检查，更严格的验证可以使用正则表达式）
             if (!targetIcon || !/\p{Emoji}/u.test(targetIcon)) {
                 document.getElementById('targetIconError').classList.remove('hidden');
@@ -3053,11 +2800,11 @@
             } else {
                 document.getElementById('targetIconError').classList.add('hidden');
             }
-            
+
             if (!isValid) {
                 return;
             }
-            
+
             // 发送数据到Bot创建新目标
             if (tg && tg.sendData) {
                 const data = JSON.stringify({
@@ -3068,12 +2815,12 @@
                     stage: config.stage,
                     timestamp: Date.now()
                 });
-                
+
                 try {
                     tg.sendData(data);
                     showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
                     hideTargetCreationModal();
-                    
+
                     // 延迟后发送分析配置并显示解密动画
                     setTimeout(() => {
                         // ========== 获取数据：收集当前选中的'关系类型'和'博弈阶段' ==========
@@ -3083,10 +2830,10 @@
                             stage: config.stage,
                             timestamp: Date.now()
                         };
-                        
+
                         // ========== 调用解密动画：先触发 startDecryption() 动画 ==========
                         startDecryption();
-                        
+
                         // ========== 发送并关闭：在动画运行 1.5 秒后，调用 sendData ==========
                         setTimeout(() => {
                             // 使用 window.Telegram.WebApp.sendData() 发送数据
@@ -3120,8 +2867,13 @@
                 }
             }
         });
-        */
-        
+
+        // 图标选择器点击事件
+        document.getElementById('targetIconSelector').addEventListener('click', () => {
+            hapticFeedback.impact('light');
+            showEmojiPicker();
+        });
+
         // ==================== Emoji 选择器相关函数 ====================
         // 常用Emoji列表（简化版，实际可以使用更完整的Emoji库）
         const emojiCategories = {
@@ -3134,17 +2886,17 @@
             travel: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🚲', '🛵', '🏍️', '🚄', '🚅', '🚆', '🚇'],
             flags: ['🏁', '🚩', '🎌', '🏴', '🏳️', '🏳️‍🌈', '🏳️‍⚧️', '🇺🇳', '🇦🇫', '🇦🇽', '🇦🇱', '🇩🇿', '🇦🇸', '🇦🇩', '🇦🇴', '🇦🇮', '🇦🇶', '🇦🇬', '🇦🇷', '🇦🇲']
         };
-        
+
         // 显示Emoji选择器
         function showEmojiPicker() {
             const modal = document.getElementById('emojiPickerModal');
             const emojiList = document.getElementById('emojiList');
             const emojiCategoriesDiv = document.getElementById('emojiCategories');
-            
+
             // 清空列表
             emojiList.innerHTML = '';
             emojiCategoriesDiv.innerHTML = '';
-            
+
             // 添加分类按钮
             Object.keys(emojiCategories).forEach(category => {
                 const btn = document.createElement('button');
@@ -3156,21 +2908,21 @@
                 });
                 emojiCategoriesDiv.appendChild(btn);
             });
-            
+
             // 默认加载最近使用的
             loadEmojiCategory('recent');
-            
+
             // 显示弹窗
             modal.classList.remove('hidden');
         }
-        
+
         // 加载Emoji分类
         function loadEmojiCategory(category) {
             const emojiList = document.getElementById('emojiList');
             const emojis = emojiCategories[category] || [];
-            
+
             emojiList.innerHTML = '';
-            
+
             emojis.forEach(emoji => {
                 const emojiBtn = document.createElement('button');
                 emojiBtn.className = 'text-2xl p-2 hover:bg-gray-700 rounded-lg transition-colors cursor-pointer';
@@ -3182,44 +2934,60 @@
                 emojiList.appendChild(emojiBtn);
             });
         }
-        
+
         // 选择Emoji
         function selectEmoji(emoji) {
             currentSelectedIcon = emoji;
             document.getElementById('selectedIcon').textContent = emoji;
             hideEmojiPicker();
         }
-        
+
         // 隐藏Emoji选择器
         function hideEmojiPicker() {
             const modal = document.getElementById('emojiPickerModal');
             modal.classList.add('hidden');
         }
-        
-        // 注意：Emoji选择器相关事件绑定已移到 initEventListeners() 函数中
-        
-        // Emoji搜索功能（已移到 initEventListeners 中，这里保留注释）
-        /*
+
+        // 关闭Emoji选择器
+        document.getElementById('closeEmojiPicker').addEventListener('click', () => {
+            hapticFeedback.impact('light');
+            hideEmojiPicker();
+        });
+
+        // 点击弹窗外部关闭（可选）
+        document.getElementById('emojiPickerModal').addEventListener('click', (e) => {
+            if (e.target.id === 'emojiPickerModal') {
+                hideEmojiPicker();
+            }
+        });
+
+        document.getElementById('targetCreationModal').addEventListener('click', (e) => {
+            if (e.target.id === 'targetCreationModal') {
+                hideTargetCreationModal();
+            }
+        });
+
+        // Emoji搜索功能（简化版）
         document.getElementById('emojiSearchInput').addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
             const emojiList = document.getElementById('emojiList');
             const noResults = document.getElementById('noEmojiResults');
-            
+
             if (!searchTerm) {
                 loadEmojiCategory('recent');
                 noResults.classList.add('hidden');
                 return;
             }
-            
+
             // 搜索所有分类
             const allEmojis = Object.values(emojiCategories).flat();
             const filtered = allEmojis.filter(emoji => {
                 // 简单的搜索逻辑（可以根据需要改进）
                 return emoji.includes(searchTerm) || searchTerm.includes(emoji);
             });
-            
+
             emojiList.innerHTML = '';
-            
+
             if (filtered.length === 0) {
                 noResults.classList.remove('hidden');
             } else {
@@ -3236,25 +3004,24 @@
                 });
             }
         });
-        */
-        
+
         // 简单的Toast提示函数（如果不存在）
         function showToast(message, type = 'info') {
             // 简单的实现，可以后续改进
             const statusCard = document.getElementById('statusCard');
             const statusText = document.getElementById('statusText');
-            
+
             if (statusCard && statusText) {
                 statusCard.style.display = 'block';
                 statusText.textContent = message;
-                
+
                 const typeClasses = {
                     'success': 'text-sm text-cyan-400',
                     'error': 'text-sm text-red-400',
                     'info': 'text-sm text-amber-400'
                 };
                 statusText.className = typeClasses[type] || 'text-sm text-gray-400';
-                
+
                 setTimeout(() => {
                     statusCard.style.display = 'none';
                 }, 3000);
@@ -3334,7 +3101,7 @@
             const update = () => {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-                
+
                 // 非线性缓动函数（ease-out）
                 const easeOut = 1 - Math.pow(1 - progress, 3);
                 currentPercent = Math.floor(easeOut * targetPercent);
@@ -3370,7 +3137,7 @@
             // 更新文本（多语言）
             const decryptingSignal = t('loading_decrypting_signal');
             const securityBypassText = t('loading_security_bypass');
-            
+
             if (securityBypass) {
                 securityBypass.innerHTML = `${securityBypassText}: <span id="bypassPercent">0</span>%`;
             }
@@ -3421,7 +3188,7 @@
             // 淡出动画
             overlay.style.transition = 'opacity 0.5s ease';
             overlay.style.opacity = '0';
-            
+
             setTimeout(() => {
                 overlay.classList.add('hidden');
                 overlay.style.opacity = '';
@@ -3478,7 +3245,7 @@
             const update = () => {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-                
+
                 // 非线性缓动：前60%快速到75%，后40%缓慢到99%
                 let easeProgress;
                 if (progress < 0.6) {
@@ -3540,7 +3307,7 @@
                 // 持续混淆，直到停止
                 let scrambleCount = 0;
                 const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
-                
+
                 decryptScrambleInterval = setInterval(() => {
                     let scrambled = '';
                     for (let i = 0; i < decryptingText.length; i++) {
@@ -3562,7 +3329,7 @@
 
             // 手机震动
             hapticFeedback.impact('heavy');
-            
+
             // 如果支持震动API，也调用原生震动
             if (navigator.vibrate) {
                 navigator.vibrate(200);
@@ -3602,7 +3369,7 @@
             // 0.5s渐隐动画
             overlay.style.transition = 'opacity 0.5s ease';
             overlay.style.opacity = '0';
-            
+
             setTimeout(() => {
                 overlay.classList.add('hidden');
                 overlay.style.opacity = '';
