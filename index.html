@@ -17,6 +17,15 @@
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+    <!-- 立即初始化 Telegram WebApp -->
+    <script>
+        // 在页面加载时立即调用 ready()
+        if (typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            console.log('✓ Telegram WebApp initialized');
+        }
+    </script>
+
     <style>
         * {
             margin: 0;
@@ -29,6 +38,11 @@
             background: #000000;
             color: #ffffff;
             overflow-x: hidden;
+            /* 安全区域适配 - iPhone 刘海屏和底部横条 */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
         }
 
         .mono {
@@ -128,6 +142,7 @@
         /* 分段选择器样式 - 硅谷精品风格 */
         .segment-container {
             display: flex;
+            flex-wrap: wrap; /* 允许换行 */
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
@@ -135,14 +150,17 @@
             border-radius: 16px;
             padding: 6px;
             gap: 6px;
+            justify-content: flex-start; /* 左对齐 */
         }
 
         .segment-option {
-            flex: 1;
-            padding: 12px 18px;
-            border-radius: 16px;
+            /* 移除 flex: 1，让按钮自适应内容宽度 */
+            min-width: 60px; /* 最小宽度 */
+            width: auto; /* 宽度自适应内容 */
+            padding: 10px 16px; /* 适当减小内边距以适应小屏幕 */
+            border-radius: 12px;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px; /* 稍微减小字体 */
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -150,6 +168,10 @@
             color: rgba(255, 255, 255, 0.6);
             border: none;
             position: relative;
+            white-space: nowrap; /* 防止文字换行 */
+            flex-shrink: 0; /* 防止收缩 */
+            pointer-events: auto !important; /* 确保可点击 */
+            z-index: 1; /* 确保在上层 */
         }
 
         .segment-option:active {
@@ -221,7 +243,10 @@
         .page {
             display: none;
             padding: 24px;
-            padding-bottom: 120px;
+            padding-top: calc(24px + env(safe-area-inset-top)); /* 适配顶部安全区域 */
+            padding-bottom: calc(120px + env(safe-area-inset-bottom)); /* 适配底部安全区域 */
+            padding-left: calc(24px + env(safe-area-inset-left)); /* 适配左侧安全区域 */
+            padding-right: calc(24px + env(safe-area-inset-right)); /* 适配右侧安全区域 */
             min-height: 100vh;
             opacity: 0;
             transform: translateY(20px);
@@ -1198,6 +1223,26 @@
             z-index: 10;
             pointer-events: auto !important;
         }
+
+        /* 确保所有可交互元素可点击 */
+        button, .segment-option, .nav-item, .btn-primary, .btn-secondary {
+            pointer-events: auto !important;
+            touch-action: manipulation; /* 优化移动端触摸 */
+            -webkit-tap-highlight-color: rgba(6, 182, 212, 0.3); /* iOS 点击高亮 */
+        }
+
+        /* 确保没有透明层遮挡 */
+        .modal-overlay.hidden,
+        .loading-overlay.hidden,
+        .decrypt-overlay.hidden {
+            pointer-events: none !important;
+        }
+
+        .modal-overlay:not(.hidden),
+        .loading-overlay:not(.hidden),
+        .decrypt-overlay:not(.hidden) {
+            pointer-events: all;
+        }
     </style>
 </head>
 <body>
@@ -2027,12 +2072,17 @@
         const tg = isTelegramWebApp ? window.Telegram.WebApp : null;
 
         if (tg) {
-            tg.ready();
+            // ready() 已经在 head 中调用，这里只做扩展和主题设置
             tg.expand();
 
             // 设置主题
             tg.setHeaderColor('#000000');
             tg.setBackgroundColor('#000000');
+
+            // 启用关闭确认（可选）
+            tg.enableClosingConfirmation();
+
+            console.log('✓ Telegram WebApp expanded and configured');
         } else {
             console.warn('Telegram WebApp 不可用，运行在非 Telegram 环境中');
         }
