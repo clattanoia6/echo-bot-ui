@@ -171,7 +171,13 @@
             white-space: nowrap; /* 防止文字换行 */
             flex-shrink: 0; /* 防止收缩 */
             pointer-events: auto !important; /* 确保可点击 */
-            z-index: 1; /* 确保在上层 */
+            z-index: 100 !important; /* 提高层级，确保在上层 */
+            touch-action: manipulation; /* 优化移动端触摸 */
+            -webkit-tap-highlight-color: rgba(6, 182, 212, 0.3); /* iOS 点击高亮 */
+            user-select: none; /* 防止文本选择 */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
 
         .segment-option:active {
@@ -485,8 +491,8 @@
                 0 0 8px rgba(6, 182, 212, 0.4),
                 0 0 16px rgba(6, 182, 212, 0.2),
                 inset 0 0 4px rgba(6, 182, 212, 0.3);
-            z-index: 9999;
-            pointer-events: none;
+            z-index: 1; /* 降低层级，避免遮挡 */
+            pointer-events: none !important; /* 确保不拦截点击事件 */
             animation: scanLine 4s linear infinite;
             will-change: top, opacity;
         }
@@ -719,13 +725,7 @@
         }
 
         /* 响应式文本处理 - 防止长文本溢出 */
-        .segment-option {
-            word-break: break-word;
-            overflow-wrap: break-word;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            overflow: hidden;
-        }
+        /* 注意：这个样式已经被上面的 .segment-option 覆盖，保留用于兼容性 */
 
         .nav-item-label {
             word-break: break-word;
@@ -1227,8 +1227,31 @@
         /* 确保所有可交互元素可点击 */
         button, .segment-option, .nav-item, .btn-primary, .btn-secondary {
             pointer-events: auto !important;
-            touch-action: manipulation; /* 优化移动端触摸 */
+            touch-action: manipulation !important; /* 优化移动端触摸 */
             -webkit-tap-highlight-color: rgba(6, 182, 212, 0.3); /* iOS 点击高亮 */
+            user-select: none; /* 防止文本选择 */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* 确保容器不会阻止点击事件 */
+        .segment-container {
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 10;
+        }
+
+        .card {
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 5;
+        }
+
+        .page {
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 1;
         }
 
         /* 确保没有透明层遮挡 */
@@ -2237,36 +2260,57 @@
             }
         });
 
-        // 处理分段选择器点击
-        segmentOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                const type = option.dataset.type;
-                const value = option.dataset.value;
-                const buttonId = option.id;
+        // 处理分段选择器点击（同时支持 click 和 touchstart）
+        function handleSegmentOptionClick(option) {
+            const type = option.dataset.type;
+            const value = option.dataset.value;
+            const buttonId = option.id;
 
-                // 触感反馈
-                hapticFeedback.impact('medium');
+            // 触感反馈
+            hapticFeedback.impact('medium');
 
-                // 处理自定义按钮
-                if (buttonId === 'rel-custom-btn' || buttonId === 'stage-custom-btn') {
-                    currentCustomButton = option;
-                    const placeholder = type === 'relationship' 
-                        ? t('custom_placeholder_relationship')
-                        : t('custom_placeholder_stage');
-                    showCustomInputModal(type, placeholder);
-                    return;
-                }
+            // 处理自定义按钮
+            if (buttonId === 'rel-custom-btn' || buttonId === 'stage-custom-btn') {
+                currentCustomButton = option;
+                const placeholder = type === 'relationship' 
+                    ? t('custom_placeholder_relationship')
+                    : t('custom_placeholder_stage');
+                showCustomInputModal(type, placeholder);
+                return;
+            }
 
-                // 处理预设选项
-                // 更新UI
-                document.querySelectorAll(`[data-type="${type}"]`).forEach(opt => {
-                    opt.classList.remove('active');
-                });
-                option.classList.add('active');
-
-                // 更新配置
-                config[type] = value;
+            // 处理预设选项
+            // 更新UI
+            document.querySelectorAll(`[data-type="${type}"]`).forEach(opt => {
+                opt.classList.remove('active');
             });
+            option.classList.add('active');
+
+            // 更新配置
+            config[type] = value;
+
+            console.log(`✓ 选择了 ${type}: ${value}`);
+        }
+
+        // 绑定事件（同时支持 click 和 touchstart，确保移动端可用）
+        segmentOptions.forEach(option => {
+            // 使用 touchstart 和 click 双重绑定，确保移动端可用
+            option.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // 防止双击缩放
+                e.stopPropagation(); // 阻止事件冒泡
+                handleSegmentOptionClick(option);
+            }, { passive: false });
+
+            option.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSegmentOptionClick(option);
+            });
+
+            // 添加调试日志
+            option.addEventListener('touchstart', () => {
+                console.log('🔍 Touch event detected on:', option.textContent);
+            }, { passive: true });
         });
 
         // 确认配置按钮（开始分析）
