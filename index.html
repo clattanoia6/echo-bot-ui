@@ -2496,7 +2496,7 @@
             
             if (copyBtn && inviteCode) {
                 // 生成邀请码（基于用户ID）- 安全访问
-                // 安全获取用户ID（第1113行修复：使用安全模式）
+                // 安全获取用户ID（修复崩溃：使用安全模式）
                 const userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : 'unknown';
                 if (userId !== 'unknown') {
                     const code = `ECHO-${userId.toString(16).toUpperCase().slice(0, 4)}-${Date.now().toString(16).toUpperCase().slice(-4)}`;
@@ -2554,7 +2554,7 @@
             });
             
             // 初始化用户信息 - 安全访问
-            // 安全获取用户ID（第1113行修复：使用安全模式）
+            // 安全获取用户ID（修复崩溃：使用安全模式）
             const userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : 'unknown';
             if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
                 const user = tg.initDataUnsafe.user;
