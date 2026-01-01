@@ -17,15 +17,6 @@
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <!-- 立即初始化 Telegram WebApp -->
-    <script>
-        // 在页面加载时立即调用 ready()
-        if (typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.ready();
-            console.log('✓ Telegram WebApp initialized');
-        }
-    </script>
-
     <style>
         * {
             margin: 0;
@@ -38,11 +29,6 @@
             background: #000000;
             color: #ffffff;
             overflow-x: hidden;
-            /* 安全区域适配 - iPhone 刘海屏和底部横条 */
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
         }
 
         .mono {
@@ -142,7 +128,6 @@
         /* 分段选择器样式 - 硅谷精品风格 */
         .segment-container {
             display: flex;
-            flex-wrap: wrap; /* 允许换行 */
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
@@ -150,17 +135,14 @@
             border-radius: 16px;
             padding: 6px;
             gap: 6px;
-            justify-content: flex-start; /* 左对齐 */
         }
 
         .segment-option {
-            /* 移除 flex: 1，让按钮自适应内容宽度 */
-            min-width: 60px; /* 最小宽度 */
-            width: auto; /* 宽度自适应内容 */
-            padding: 10px 16px; /* 适当减小内边距以适应小屏幕 */
-            border-radius: 12px;
+            flex: 1;
+            padding: 12px 18px;
+            border-radius: 16px;
             text-align: center;
-            font-size: 13px; /* 稍微减小字体 */
+            font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -168,16 +150,6 @@
             color: rgba(255, 255, 255, 0.6);
             border: none;
             position: relative;
-            white-space: nowrap; /* 防止文字换行 */
-            flex-shrink: 0; /* 防止收缩 */
-            pointer-events: auto !important; /* 确保可点击 */
-            z-index: 100 !important; /* 提高层级，确保在上层 */
-            touch-action: manipulation; /* 优化移动端触摸 */
-            -webkit-tap-highlight-color: rgba(6, 182, 212, 0.3); /* iOS 点击高亮 */
-            user-select: none; /* 防止文本选择 */
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
         }
 
         .segment-option:active {
@@ -249,10 +221,7 @@
         .page {
             display: none;
             padding: 24px;
-            padding-top: calc(24px + env(safe-area-inset-top)); /* 适配顶部安全区域 */
-            padding-bottom: calc(120px + env(safe-area-inset-bottom)); /* 适配底部安全区域 */
-            padding-left: calc(24px + env(safe-area-inset-left)); /* 适配左侧安全区域 */
-            padding-right: calc(24px + env(safe-area-inset-right)); /* 适配右侧安全区域 */
+            padding-bottom: 120px;
             min-height: 100vh;
             opacity: 0;
             transform: translateY(20px);
@@ -491,8 +460,8 @@
                 0 0 8px rgba(6, 182, 212, 0.4),
                 0 0 16px rgba(6, 182, 212, 0.2),
                 inset 0 0 4px rgba(6, 182, 212, 0.3);
-            z-index: 1; /* 降低层级，避免遮挡 */
-            pointer-events: none !important; /* 确保不拦截点击事件 */
+            z-index: 9999;
+            pointer-events: none;
             animation: scanLine 4s linear infinite;
             will-change: top, opacity;
         }
@@ -725,7 +694,13 @@
         }
 
         /* 响应式文本处理 - 防止长文本溢出 */
-        /* 注意：这个样式已经被上面的 .segment-option 覆盖，保留用于兼容性 */
+        .segment-option {
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
 
         .nav-item-label {
             word-break: break-word;
@@ -1222,49 +1197,6 @@
             position: relative;
             z-index: 10;
             pointer-events: auto !important;
-        }
-
-        /* 确保所有可交互元素可点击 */
-        button, .segment-option, .nav-item, .btn-primary, .btn-secondary {
-            pointer-events: auto !important;
-            touch-action: manipulation !important; /* 优化移动端触摸 */
-            -webkit-tap-highlight-color: rgba(6, 182, 212, 0.3); /* iOS 点击高亮 */
-            user-select: none; /* 防止文本选择 */
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-
-        /* 确保容器不会阻止点击事件 */
-        .segment-container {
-            pointer-events: auto !important;
-            position: relative;
-            z-index: 10;
-        }
-
-        .card {
-            pointer-events: auto !important;
-            position: relative;
-            z-index: 5;
-        }
-
-        .page {
-            pointer-events: auto !important;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* 确保没有透明层遮挡 */
-        .modal-overlay.hidden,
-        .loading-overlay.hidden,
-        .decrypt-overlay.hidden {
-            pointer-events: none !important;
-        }
-
-        .modal-overlay:not(.hidden),
-        .loading-overlay:not(.hidden),
-        .decrypt-overlay:not(.hidden) {
-            pointer-events: all;
         }
     </style>
 </head>
@@ -2095,17 +2027,12 @@
         const tg = isTelegramWebApp ? window.Telegram.WebApp : null;
 
         if (tg) {
-            // ready() 已经在 head 中调用，这里只做扩展和主题设置
+            tg.ready();
             tg.expand();
 
             // 设置主题
             tg.setHeaderColor('#000000');
             tg.setBackgroundColor('#000000');
-
-            // 启用关闭确认（可选）
-            tg.enableClosingConfirmation();
-
-            console.log('✓ Telegram WebApp expanded and configured');
         } else {
             console.warn('Telegram WebApp 不可用，运行在非 Telegram 环境中');
         }
@@ -2141,159 +2068,131 @@
         console.log('Telegram WebApp initData:', initData);
         console.log('Telegram WebApp initDataUnsafe:', initDataUnsafe);
 
-        // 配置对象（全局）
+        // 页面切换
+        const pages = document.querySelectorAll('.page');
+        const navItems = document.querySelectorAll('.nav-item');
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const targetPage = item.dataset.page;
+
+                // 触感反馈
+                hapticFeedback.impact('medium');
+
+                // 更新导航状态
+                navItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+
+                // 切换页面（带淡入动画）
+                pages.forEach(page => {
+                    page.classList.remove('active');
+                    // 重置动画状态
+                    page.style.opacity = '0';
+                    page.style.transform = 'translateY(20px)';
+                });
+
+                const targetPageElement = document.getElementById(`page-${targetPage}`);
+                // 使用 requestAnimationFrame 确保动画触发
+                requestAnimationFrame(() => {
+                    targetPageElement.classList.add('active');
+                    targetPageElement.style.opacity = '1';
+                    targetPageElement.style.transform = 'translateY(0)';
+                });
+            });
+        });
+
+        // 分段选择器
+        const segmentOptions = document.querySelectorAll('.segment-option');
         const config = {
             relationship: 'lover',
             stage: 'ambiguous'
         };
 
-        // 初始化所有事件绑定（必须在 DOM 加载完成后执行）
-        function initEventListeners() {
-            console.log('🔧 开始初始化事件监听器...');
+        // 自定义输入弹窗元素
+        const customInputModal = document.getElementById('customInputModal');
+        const customInputModalTitle = document.getElementById('customInputModalTitle');
+        const customInputModalInput = document.getElementById('customInputModalInput');
+        const customInputModalCancel = document.getElementById('customInputModalCancel');
+        const customInputModalConfirm = document.getElementById('customInputModalConfirm');
 
-            // 页面切换
-            const pages = document.querySelectorAll('.page');
-            const navItems = document.querySelectorAll('.nav-item');
+        // 当前正在编辑的自定义按钮
+        let currentCustomButton = null;
+        let currentCustomType = null;
 
-            console.log(`📄 找到 ${pages.length} 个页面元素`);
-            console.log(`🧭 找到 ${navItems.length} 个导航项`);
+        // 显示自定义输入弹窗
+        function showCustomInputModal(type, placeholder) {
+            currentCustomType = type;
+            customInputModalTitle.textContent = type === 'relationship' 
+                ? t('custom_placeholder_relationship') 
+                : t('custom_placeholder_stage');
+            customInputModalInput.placeholder = placeholder;
+            customInputModalInput.value = '';
+            customInputModal.classList.add('show');
+            setTimeout(() => {
+                customInputModalInput.focus();
+            }, 100);
+        }
 
-            if (navItems.length === 0) {
-                console.error('❌ 未找到导航项，DOM 可能未加载完成');
+        // 隐藏自定义输入弹窗
+        function hideCustomInputModal() {
+            customInputModal.classList.remove('show');
+            currentCustomButton = null;
+            currentCustomType = null;
+        }
+
+        // 确认自定义输入
+        customInputModalConfirm.addEventListener('click', () => {
+            const value = customInputModalInput.value.trim();
+            if (!value) {
                 return;
             }
 
-            navItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    const targetPage = item.dataset.page;
+            if (currentCustomButton && currentCustomType) {
+                // 更新按钮文字
+                currentCustomButton.textContent = value;
 
-                    // 触感反馈
-                    hapticFeedback.impact('medium');
-
-                    // 更新导航状态
-                    navItems.forEach(nav => nav.classList.remove('active'));
-                    item.classList.add('active');
-
-                    // 切换页面（带淡入动画）
-                    pages.forEach(page => {
-                        page.classList.remove('active');
-                        // 重置动画状态
-                        page.style.opacity = '0';
-                        page.style.transform = 'translateY(20px)';
-                    });
-
-                    const targetPageElement = document.getElementById(`page-${targetPage}`);
-                    if (targetPageElement) {
-                        // 使用 requestAnimationFrame 确保动画触发
-                        requestAnimationFrame(() => {
-                            targetPageElement.classList.add('active');
-                            targetPageElement.style.opacity = '1';
-                            targetPageElement.style.transform = 'translateY(0)';
-                        });
-                    }
+                // 设为选中状态
+                document.querySelectorAll(`[data-type="${currentCustomType}"]`).forEach(opt => {
+                    opt.classList.remove('active');
                 });
-            });
+                currentCustomButton.classList.add('active');
 
-            // 分段选择器
-            const segmentOptions = document.querySelectorAll('.segment-option');
-            console.log(`🏷️ 找到 ${segmentOptions.length} 个分段选项`);
+                // 更新配置
+                config[currentCustomType] = `custom:${value}`;
 
-            if (segmentOptions.length === 0) {
-                console.error('❌ 未找到分段选项，DOM 可能未加载完成');
-                return;
+                // 触感反馈
+                hapticFeedback.notification('success');
             }
 
-            // 自定义输入弹窗元素
-            const customInputModal = document.getElementById('customInputModal');
-            const customInputModalTitle = document.getElementById('customInputModalTitle');
-            const customInputModalInput = document.getElementById('customInputModalInput');
-            const customInputModalCancel = document.getElementById('customInputModalCancel');
-            const customInputModalConfirm = document.getElementById('customInputModalConfirm');
+            hideCustomInputModal();
+        });
 
-            if (!customInputModal || !customInputModalTitle || !customInputModalInput) {
-                console.error('❌ 未找到自定义输入弹窗元素');
-                return;
-            }
+        // 取消自定义输入
+        customInputModalCancel.addEventListener('click', () => {
+            hideCustomInputModal();
+            hapticFeedback.impact('light');
+        });
 
-            // 当前正在编辑的自定义按钮
-            let currentCustomButton = null;
-            let currentCustomType = null;
-
-            // 显示自定义输入弹窗
-            function showCustomInputModal(type, placeholder) {
-                currentCustomType = type;
-                customInputModalTitle.textContent = type === 'relationship' 
-                    ? t('custom_placeholder_relationship') 
-                    : t('custom_placeholder_stage');
-                customInputModalInput.placeholder = placeholder;
-                customInputModalInput.value = '';
-                customInputModal.classList.add('show');
-                setTimeout(() => {
-                    customInputModalInput.focus();
-                }, 100);
-            }
-
-            // 隐藏自定义输入弹窗
-            function hideCustomInputModal() {
-                customInputModal.classList.remove('show');
-                currentCustomButton = null;
-                currentCustomType = null;
-            }
-
-            // 确认自定义输入
-            customInputModalConfirm.addEventListener('click', () => {
-                const value = customInputModalInput.value.trim();
-                if (!value) {
-                    return;
-                }
-
-                if (currentCustomButton && currentCustomType) {
-                    // 更新按钮文字
-                    currentCustomButton.textContent = value;
-
-                    // 设为选中状态
-                    document.querySelectorAll(`[data-type="${currentCustomType}"]`).forEach(opt => {
-                        opt.classList.remove('active');
-                    });
-                    currentCustomButton.classList.add('active');
-
-                    // 更新配置
-                    config[currentCustomType] = `custom:${value}`;
-
-                    // 触感反馈
-                    hapticFeedback.notification('success');
-                }
-
+        // 点击弹窗外部关闭
+        customInputModal.addEventListener('click', (e) => {
+            if (e.target === customInputModal) {
                 hideCustomInputModal();
-            });
+            }
+        });
 
-            // 取消自定义输入
-            customInputModalCancel.addEventListener('click', () => {
-                hideCustomInputModal();
-                hapticFeedback.impact('light');
-            });
+        // 回车确认
+        customInputModalInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                customInputModalConfirm.click();
+            }
+        });
 
-            // 点击弹窗外部关闭
-            customInputModal.addEventListener('click', (e) => {
-                if (e.target === customInputModal) {
-                    hideCustomInputModal();
-                }
-            });
-
-            // 回车确认
-            customInputModalInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    customInputModalConfirm.click();
-                }
-            });
-
-            // 处理分段选择器点击（同时支持 click 和 touchstart）
-            function handleSegmentOptionClick(option) {
+        // 处理分段选择器点击
+        segmentOptions.forEach(option => {
+            option.addEventListener('click', () => {
                 const type = option.dataset.type;
                 const value = option.dataset.value;
                 const buttonId = option.id;
-
-                console.log(`🖱️ 点击了分段选项: ${type} = ${value} (ID: ${buttonId})`);
 
                 // 触感反馈
                 hapticFeedback.impact('medium');
@@ -2317,43 +2216,15 @@
 
                 // 更新配置
                 config[type] = value;
-
-                console.log(`✓ 选择了 ${type}: ${value}`);
-            }
-
-            // 绑定事件（同时支持 click 和 touchstart，确保移动端可用）
-            segmentOptions.forEach((option, index) => {
-                console.log(`🔗 绑定事件到选项 ${index + 1}: ${option.textContent}`);
-
-                // 使用 touchstart 和 click 双重绑定，确保移动端可用
-                option.addEventListener('touchstart', (e) => {
-                    console.log(`👆 Touchstart 事件触发: ${option.textContent}`);
-                    e.preventDefault(); // 防止双击缩放
-                    e.stopPropagation(); // 阻止事件冒泡
-                    handleSegmentOptionClick(option);
-                }, { passive: false });
-
-                option.addEventListener('click', (e) => {
-                    console.log(`🖱️ Click 事件触发: ${option.textContent}`);
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleSegmentOptionClick(option);
-                });
             });
+        });
 
-            // 确认配置按钮（开始分析）
-            const confirmBtn = document.getElementById('confirmBtn');
-            const statusCard = document.getElementById('statusCard');
-            const statusText = document.getElementById('statusText');
+        // 确认配置按钮（开始分析）
+        const confirmBtn = document.getElementById('confirmBtn');
+        const statusCard = document.getElementById('statusCard');
+        const statusText = document.getElementById('statusText');
 
-            if (!confirmBtn) {
-                console.error('❌ 未找到确认按钮');
-                return;
-            }
-
-            console.log('✅ 确认按钮已找到，绑定点击事件');
-
-            confirmBtn.addEventListener('click', () => {
+        confirmBtn.addEventListener('click', () => {
             // 触感反馈
             hapticFeedback.impact('medium');
 
@@ -2468,21 +2339,20 @@
                     }, 2000);
                 }
             }, 1500); // 1.5 秒后发送数据
-            });
+        });
 
-            // 复制邀请码
-            const inviteCode = document.getElementById('inviteCode');
-            const copyBtn = document.getElementById('copyBtn');
+        // 复制邀请码
+        const inviteCode = document.getElementById('inviteCode');
+        const copyBtn = document.getElementById('copyBtn');
 
-            if (copyBtn && inviteCode) {
-                // 生成邀请码（基于用户ID）
-                if (initDataUnsafe.user) {
-                    const userId = initDataUnsafe.user.id;
-                    const code = `ECHO-${userId.toString(16).toUpperCase().slice(0, 4)}-${Date.now().toString(16).toUpperCase().slice(-4)}`;
-                    inviteCode.textContent = code;
-                }
+        // 生成邀请码（基于用户ID）
+        if (initDataUnsafe.user) {
+            const userId = initDataUnsafe.user.id;
+            const code = `ECHO-${userId.toString(16).toUpperCase().slice(0, 4)}-${Date.now().toString(16).toUpperCase().slice(-4)}`;
+            inviteCode.textContent = code;
+        }
 
-                copyBtn.addEventListener('click', async () => {
+        copyBtn.addEventListener('click', async () => {
             // 触感反馈（成功通知）
             hapticFeedback.notification('success');
 
@@ -2492,17 +2362,15 @@
                 setTimeout(() => {
                     copyBtn.textContent = t('btn_copy');
                 }, 2000);
-                } catch (err) {
-                    console.error('复制失败:', err);
-                }
-                });
+            } catch (err) {
+                console.error('复制失败:', err);
             }
+        });
 
-            // 充值按钮
-            const rechargeButtons = document.querySelectorAll('[data-amount]');
-            console.log(`💰 找到 ${rechargeButtons.length} 个充值按钮`);
-            rechargeButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
+        // 充值按钮
+        const rechargeButtons = document.querySelectorAll('[data-amount]');
+        rechargeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
                 const amount = btn.dataset.amount;
 
                 // 触感反馈（成功通知）
@@ -2527,230 +2395,17 @@
                 setTimeout(() => {
                     statusCard.style.display = 'none';
                 }, 3000);
-                });
             });
+        });
 
-            // 初始化用户信息
-            if (initDataUnsafe.user) {
-                const user = initDataUnsafe.user;
-                const userIdEl = document.getElementById('userId');
-                const registerTimeEl = document.getElementById('registerTime');
-                if (userIdEl) userIdEl.textContent = user.id || '-';
-                if (registerTimeEl) {
-                    // 模拟注册时间（实际应从服务器获取）
-                    const registerTime = new Date().toLocaleDateString('zh-CN');
-                    registerTimeEl.textContent = registerTime;
-                }
-            }
+        // 初始化用户信息
+        if (initDataUnsafe.user) {
+            const user = initDataUnsafe.user;
+            document.getElementById('userId').textContent = user.id || '-';
 
-            // ==================== 档案初始化弹窗相关事件绑定 ====================
-            const cancelTargetCreationBtn = document.getElementById('cancelTargetCreation');
-            const confirmTargetCreationBtn = document.getElementById('confirmTargetCreation');
-            const targetIconSelectorBtn = document.getElementById('targetIconSelector');
-            const closeEmojiPickerBtn = document.getElementById('closeEmojiPicker');
-            const emojiPickerModal = document.getElementById('emojiPickerModal');
-            const targetCreationModal = document.getElementById('targetCreationModal');
-            const emojiSearchInput = document.getElementById('emojiSearchInput');
-
-            if (cancelTargetCreationBtn) {
-                cancelTargetCreationBtn.addEventListener('click', () => {
-                    hapticFeedback.impact('light');
-                    hideTargetCreationModal();
-                    showToast(t('target_creation_cancelled'), 'info');
-
-                    // 发送取消消息到Bot
-                    if (tg && tg.sendData) {
-                        tg.sendData(JSON.stringify({
-                            action: 'cancel_target_creation',
-                            timestamp: Date.now()
-                        }));
-                    }
-                });
-            }
-
-            if (confirmTargetCreationBtn) {
-                confirmTargetCreationBtn.addEventListener('click', async () => {
-                    hapticFeedback.impact('medium');
-                    const targetName = document.getElementById('targetNameInput').value.trim();
-                    const targetIcon = currentSelectedIcon;
-
-                    let isValid = true;
-
-                    // 验证名称
-                    if (!targetName || targetName.length === 0 || targetName.length > 20) {
-                        document.getElementById('targetNameError').classList.remove('hidden');
-                        isValid = false;
-                    } else {
-                        document.getElementById('targetNameError').classList.add('hidden');
-                    }
-
-                    // 验证图标（简单检查，更严格的验证可以使用正则表达式）
-                    if (!targetIcon || !/\p{Emoji}/u.test(targetIcon)) {
-                        document.getElementById('targetIconError').classList.remove('hidden');
-                        isValid = false;
-                    } else {
-                        document.getElementById('targetIconError').classList.add('hidden');
-                    }
-
-                    if (!isValid) {
-                        return;
-                    }
-
-                    // 发送数据到Bot创建新目标
-                    if (tg && tg.sendData) {
-                        const data = JSON.stringify({
-                            action: 'create_new_target',
-                            alias: targetName,
-                            icon: targetIcon,
-                            relationship: config.relationship,
-                            stage: config.stage,
-                            timestamp: Date.now()
-                        });
-
-                        try {
-                            tg.sendData(data);
-                            showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
-                            hideTargetCreationModal();
-
-                            // 延迟后发送分析配置并显示解密动画
-                            setTimeout(() => {
-                                // ========== 获取数据：收集当前选中的'关系类型'和'博弈阶段' ==========
-                                const analysisData = {
-                                    action: 'start_analysis',
-                                    relationship: config.relationship,
-                                    stage: config.stage,
-                                    timestamp: Date.now()
-                                };
-
-                                // ========== 调用解密动画：先触发 startDecryption() 动画 ==========
-                                startDecryption();
-
-                                // ========== 发送并关闭：在动画运行 1.5 秒后，调用 sendData ==========
-                                setTimeout(() => {
-                                    // 使用 window.Telegram.WebApp.sendData() 发送数据
-                                    // 这会自动关闭小程序并将数据发回给 Bot
-                                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
-                                        try {
-                                            window.Telegram.WebApp.sendData(JSON.stringify(analysisData));
-                                        } catch (error) {
-                                            console.error('发送数据失败:', error);
-                                            stopDecryption();
-                                            showToast(t('status_failed'), 'error');
-                                        }
-                                    } else if (tg && tg.sendData) {
-                                        // 兼容旧版本的 Telegram WebApp API
-                                        try {
-                                            tg.sendData(JSON.stringify(analysisData));
-                                        } catch (error) {
-                                            console.error('发送数据失败:', error);
-                                            stopDecryption();
-                                            showToast(t('status_failed'), 'error');
-                                        }
-                                    } else {
-                                        stopDecryption();
-                                        showToast(t('status_not_telegram'), 'error');
-                                    }
-                                }, 1500); // 1.5 秒后发送数据
-                            }, 500);
-                        } catch (error) {
-                            console.error('发送数据失败:', error);
-                            showToast(t('miniapp_target_creation_failed'), 'error');
-                        }
-                    }
-                });
-            }
-
-            if (targetIconSelectorBtn) {
-                targetIconSelectorBtn.addEventListener('click', () => {
-                    hapticFeedback.impact('light');
-                    showEmojiPicker();
-                });
-            }
-
-            if (closeEmojiPickerBtn) {
-                closeEmojiPickerBtn.addEventListener('click', () => {
-                    hapticFeedback.impact('light');
-                    hideEmojiPicker();
-                });
-            }
-
-            if (emojiPickerModal) {
-                emojiPickerModal.addEventListener('click', (e) => {
-                    if (e.target.id === 'emojiPickerModal') {
-                        hideEmojiPicker();
-                    }
-                });
-            }
-
-            if (targetCreationModal) {
-                targetCreationModal.addEventListener('click', (e) => {
-                    if (e.target.id === 'targetCreationModal') {
-                        hideTargetCreationModal();
-                    }
-                });
-            }
-
-            if (emojiSearchInput) {
-                emojiSearchInput.addEventListener('input', (e) => {
-                    const searchTerm = e.target.value.toLowerCase();
-                    const emojiList = document.getElementById('emojiList');
-                    const noResults = document.getElementById('noEmojiResults');
-
-                    if (!searchTerm) {
-                        loadEmojiCategory('recent');
-                        if (noResults) noResults.classList.add('hidden');
-                        return;
-                    }
-
-                    // 搜索所有分类
-                    const allEmojis = Object.values(emojiCategories).flat();
-                    const filtered = allEmojis.filter(emoji => {
-                        // 简单的搜索逻辑（可以根据需要改进）
-                        return emoji.includes(searchTerm) || searchTerm.includes(emoji);
-                    });
-
-                    if (emojiList) emojiList.innerHTML = '';
-
-                    if (filtered.length === 0) {
-                        if (noResults) noResults.classList.remove('hidden');
-                    } else {
-                        if (noResults) noResults.classList.add('hidden');
-                        filtered.forEach(emoji => {
-                            const emojiBtn = document.createElement('button');
-                            emojiBtn.className = 'text-2xl p-2 hover:bg-gray-700 rounded-lg transition-colors cursor-pointer';
-                            emojiBtn.textContent = emoji;
-                            emojiBtn.addEventListener('click', () => {
-                                hapticFeedback.impact('light');
-                                selectEmoji(emoji);
-                            });
-                            if (emojiList) emojiList.appendChild(emojiBtn);
-                        });
-                    }
-                });
-            }
-
-            // ==================== 页面切换时加载档案列表 ====================
-            // 页面切换时，如果是档案页面，加载目标列表
-            navItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    const targetPage = item.dataset.page;
-                    if (targetPage === 'folder') {
-                        // 切换到档案页面时，加载目标列表
-                        // 实际应该从 Bot 获取数据，这里使用示例数据
-                        setTimeout(() => {
-                            renderTargetList(sampleTargets);
-                        }, 300);
-                    }
-                });
-            });
-
-            // 初始化：如果当前是档案页面，加载数据
-            const pageFolder = document.getElementById('page-folder');
-            if (pageFolder && pageFolder.classList.contains('active')) {
-                renderTargetList(sampleTargets);
-            }
-
-            console.log('✅ 所有事件监听器已初始化完成');
+            // 模拟注册时间（实际应从服务器获取）
+            const registerTime = new Date().toLocaleDateString('zh-CN');
+            document.getElementById('registerTime').textContent = registerTime;
         }
 
         // 监听来自 Bot 的消息（带安全检查）
@@ -2924,12 +2579,27 @@
             });
         }
 
-        // 注意：页面切换时加载档案列表的代码已移到 initEventListeners() 函数中
+        // 页面切换时，如果是档案页面，加载目标列表
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const targetPage = item.dataset.page;
+                if (targetPage === 'folder') {
+                    // 切换到档案页面时，加载目标列表
+                    // 实际应该从 Bot 获取数据，这里使用示例数据
+                    setTimeout(() => {
+                        renderTargetList(sampleTargets);
+                    }, 300);
+                }
+            });
+        });
 
-        // DOM 加载完成后初始化 i18n 和事件监听器
+        // 初始化：如果当前是档案页面，加载数据
+        if (document.getElementById('page-folder').classList.contains('active')) {
+            renderTargetList(sampleTargets);
+        }
+
+        // DOM 加载完成后初始化 i18n
         function initUI() {
-            console.log('🚀 开始初始化 UI...');
-
             initI18n();
 
             // ==================== 根据 Telegram 用户语言更新 UI ====================
@@ -2952,26 +2622,13 @@
             if (buttonElement && simpleTranslations[lang]) {
                 buttonElement.innerText = simpleTranslations[lang].button;
             }
-
-            // 初始化所有事件监听器（必须在 DOM 加载完成后）
-            initEventListeners();
-
-            console.log('✅ UI 初始化完成');
         }
 
-        // 确保 DOM 完全加载后再初始化
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                console.log('📄 DOM 加载完成，开始初始化');
-                initUI();
-            });
+            document.addEventListener('DOMContentLoaded', initUI);
         } else {
             // DOM 已经加载完成
-            console.log('📄 DOM 已就绪，立即初始化');
-            // 使用 setTimeout 确保所有元素都已渲染
-            setTimeout(() => {
-                initUI();
-            }, 100);
+            initUI();
         }
 
         // ==================== 档案初始化弹窗相关函数 ====================
@@ -3011,10 +2668,22 @@
             }
         }
 
-        // 注意：档案初始化弹窗的事件绑定已移到 initEventListeners() 函数中
+        // 取消创建档案
+        document.getElementById('cancelTargetCreation').addEventListener('click', () => {
+            hapticFeedback.impact('light');
+            hideTargetCreationModal();
+            showToast(t('target_creation_cancelled'), 'info');
 
-        // 确认创建档案（已移到 initEventListeners 中，这里保留注释）
-        /*
+            // 发送取消消息到Bot
+            if (tg && tg.sendData) {
+                tg.sendData(JSON.stringify({
+                    action: 'cancel_target_creation',
+                    timestamp: Date.now()
+                }));
+            }
+        });
+
+        // 确认创建档案
         document.getElementById('confirmTargetCreation').addEventListener('click', async () => {
             hapticFeedback.impact('medium');
             const targetName = document.getElementById('targetNameInput').value.trim();
@@ -3104,7 +2773,12 @@
                 }
             }
         });
-        */
+
+        // 图标选择器点击事件
+        document.getElementById('targetIconSelector').addEventListener('click', () => {
+            hapticFeedback.impact('light');
+            showEmojiPicker();
+        });
 
         // ==================== Emoji 选择器相关函数 ====================
         // 常用Emoji列表（简化版，实际可以使用更完整的Emoji库）
@@ -3180,10 +2854,26 @@
             modal.classList.add('hidden');
         }
 
-        // 注意：Emoji选择器相关事件绑定已移到 initEventListeners() 函数中
+        // 关闭Emoji选择器
+        document.getElementById('closeEmojiPicker').addEventListener('click', () => {
+            hapticFeedback.impact('light');
+            hideEmojiPicker();
+        });
 
-        // Emoji搜索功能（已移到 initEventListeners 中，这里保留注释）
-        /*
+        // 点击弹窗外部关闭（可选）
+        document.getElementById('emojiPickerModal').addEventListener('click', (e) => {
+            if (e.target.id === 'emojiPickerModal') {
+                hideEmojiPicker();
+            }
+        });
+
+        document.getElementById('targetCreationModal').addEventListener('click', (e) => {
+            if (e.target.id === 'targetCreationModal') {
+                hideTargetCreationModal();
+            }
+        });
+
+        // Emoji搜索功能（简化版）
         document.getElementById('emojiSearchInput').addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
             const emojiList = document.getElementById('emojiList');
@@ -3220,7 +2910,6 @@
                 });
             }
         });
-        */
 
         // 简单的Toast提示函数（如果不存在）
         function showToast(message, type = 'info') {
