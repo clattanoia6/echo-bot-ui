@@ -1946,7 +1946,7 @@
         function normalizeLangCode(langCode) {
             if (!langCode) return "en";
             langCode = langCode.toLowerCase();
-            if ("-" in langCode) {
+            if (langCode.includes("-")) {
                 const baseLang = langCode.split("-")[0];
                 if (baseLang in langCodeMap) return langCodeMap[baseLang];
             }
@@ -2016,6 +2016,20 @@
             });
             // 更新自定义输入框占位符
             updateCustomPlaceholders();
+        }
+
+        // 更新自定义输入框占位符函数
+        function updateCustomPlaceholders() {
+            const input = document.getElementById('customInputModalInput');
+            const relCustomBtn = document.getElementById('rel-custom-btn');
+            const stageCustomBtn = document.getElementById('stage-custom-btn');
+            if (input) {
+                if (relCustomBtn && relCustomBtn.classList.contains('active')) {
+                    input.placeholder = t('custom_placeholder_relationship');
+                } else if (stageCustomBtn && stageCustomBtn.classList.contains('active')) {
+                    input.placeholder = t('custom_placeholder_stage');
+                }
+            }
         }
 
         // 检查 Telegram WebApp 是否可用
@@ -2224,7 +2238,12 @@
         const statusCard = document.getElementById('statusCard');
         const statusText = document.getElementById('statusText');
 
-        confirmBtn.addEventListener('click', () => {
+        // 强制确保按钮绑定（无拦截器）
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', () => {
+            // 🚨 调试埋点：第一行必须是 alert
+            alert('🚀 信号捕捉成功，准备发送数据！');
+            
             // 触感反馈
             hapticFeedback.impact('medium');
 
@@ -2339,7 +2358,10 @@
                     }, 2000);
                 }
             }, 1500); // 1.5 秒后发送数据
-        });
+            });
+        } else {
+            console.warn('⚠️ 未找到 confirmBtn 按钮');
+        }
 
         // 复制邀请码
         const inviteCode = document.getElementById('inviteCode');
@@ -2622,6 +2644,8 @@
             if (buttonElement && simpleTranslations[lang]) {
                 buttonElement.innerText = simpleTranslations[lang].button;
             }
+            
+            console.log('✅ UI 初始化完成');
         }
 
         if (document.readyState === 'loading') {
