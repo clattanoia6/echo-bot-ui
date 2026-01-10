@@ -1173,7 +1173,7 @@
 
         /* ==================== 标签容器自动换行样式 ==================== */
         /* 确保容器内的标签可以自动换行，不再显示 ... */
-        .relationship-container, .stage-container,
+        .relationship-container, .stage-container, .objective-container,
         .segment-container {
             display: flex;
             flex-wrap: wrap; /* 允许换行 */
@@ -1228,6 +1228,15 @@
                     <button class="segment-option" data-type="stage" data-value="cold" data-i18n="stage_cold">冷战</button>
                     <button class="segment-option" data-type="stage" data-value="harvest" data-i18n="stage_harvest">收割</button>
                     <button class="segment-option custom-btn" id="stage-custom-btn" data-type="stage" data-value="custom">✍️ Custom</button>
+                </div>
+            </div>
+
+            <!-- 任务目标选择器 -->
+            <div class="mb-8">
+                <label class="block text-sm font-medium mb-4 text-gray-300" data-i18n="label_objective">任务目标</label>
+                <div class="segment-container">
+                    <button class="segment-option active" data-type="objective" data-value="analyze" data-i18n="objective_analyze">现状拆解</button>
+                    <button class="segment-option" data-type="objective" data-value="attract" data-i18n="objective_attract">诱导心动</button>
                 </div>
             </div>
 
@@ -1442,6 +1451,9 @@
                 "page_title_config": "🎯 博弈配置",
                 "label_relationship": "关系类型",
                 "label_stage": "博弈阶段",
+                "label_objective": "任务目标",
+                "objective_analyze": "现状拆解",
+                "objective_attract": "诱导心动",
                 "relationship_lover": "情侣",
                 "relationship_ex": "前任",
                 "relationship_boss": "上司",
@@ -1522,6 +1534,9 @@
                 "page_title_config": "🎯 Game Configuration",
                 "label_relationship": "Relationship Type",
                 "label_stage": "Game Stage",
+                "label_objective": "Mission Objective",
+                "objective_analyze": "Standard Analysis",
+                "objective_attract": "Attraction Building",
                 "relationship_lover": "Lover",
                 "relationship_ex": "Ex",
                 "relationship_boss": "Boss",
@@ -2119,7 +2134,8 @@
         const segmentOptions = document.querySelectorAll('.segment-option');
         const config = {
             relationship: 'lover',
-            stage: 'ambiguous'
+            stage: 'ambiguous',
+            objective: 'analyze'  // 默认：现状拆解
         };
 
         // 自定义输入弹窗元素
@@ -2282,11 +2298,12 @@
                 return;
             }
 
-            // ========== 获取数据：收集当前选中的'关系类型'和'博弈阶段' ==========
+            // ========== 获取数据：收集当前选中的'关系类型'、'博弈阶段'和'任务目标' ==========
             const dataToSend = {
                 action: 'start_analysis',
                 relationship: config.relationship,
                 stage: config.stage,
+                objective: config.objective || 'analyze',  // 任务目标：analyze 或 attract
                 timestamp: Date.now()
             };
 
