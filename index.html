@@ -1376,6 +1376,29 @@
         </div>
     </div>
 
+    <!-- 引导页弹窗（档案创建成功后） -->
+    <div id="guideModal" class="modal-overlay hidden">
+        <div class="modal-content glass">
+            <h3 class="mono text-xl font-semibold mb-4 text-cyan-400" data-i18n="guide_modal_title">✅ Archive Ready</h3>
+            <p class="text-sm text-gray-400 mb-6" data-i18n="guide_modal_desc">Archive is ready. Please return to Bot and send a conversation screenshot, chat history, or detailed text description to start soul dissection.</p>
+            <div class="flex justify-end">
+                <button id="guideModalConfirm" class="btn-primary" data-i18n="guide_modal_confirm">I Understand</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除确认弹窗 -->
+    <div id="deleteConfirmModal" class="modal-overlay hidden">
+        <div class="modal-content glass">
+            <h3 class="mono text-xl font-semibold mb-4 text-red-400" data-i18n="delete_confirm_title">⚠️ Warning</h3>
+            <p class="text-sm text-gray-300 mb-6" data-i18n="delete_confirm_desc">Warning: Archive deletion is permanent and cannot be recovered. All game history and dominance data will be permanently lost. Confirm deletion?</p>
+            <div class="flex justify-end space-x-3">
+                <button id="deleteConfirmCancel" class="btn-secondary" data-i18n="delete_confirm_cancel">Cancel</button>
+                <button id="deleteConfirmOk" class="btn-primary bg-red-600 hover:bg-red-700" data-i18n="delete_confirm_ok">Confirm Delete</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Emoji Picker Modal -->
     <div id="emojiPickerModal" class="modal-overlay hidden">
         <div class="modal-content glass" style="max-height: 80vh; overflow-y: auto;">
@@ -1528,7 +1551,21 @@
                 "loading_decrypting_signal": "DECRYPTING_SIGNAL",
                 "loading_security_bypass": "SECURITY_BYPASS",
                 "decrypt_signal_searching": "SIGNAL_SEARCHING",
-                "decrypt_decrypting": "DECRYPTING"
+                "decrypt_decrypting": "DECRYPTING",
+                "guide_modal_title": "✅ 档案已就绪",
+                "guide_modal_desc": "档案已就绪，请返回 Bot 发送对话截图、聊天记录或详细文字叙述以启动灵魂拆解。",
+                "guide_modal_confirm": "我知道了",
+                "btn_edit": "编辑",
+                "btn_delete": "删除",
+                "btn_save": "保存",
+                "delete_confirm_title": "⚠️ 警告",
+                "delete_confirm_desc": "警告：档案删除后无法恢复，其中的博弈历史和主导权数据将永久消失。确认删除？",
+                "delete_confirm_cancel": "取消",
+                "delete_confirm_ok": "确认删除",
+                "target_updated": "档案已更新：{alias}",
+                "target_update_failed": "档案更新失败",
+                "target_deleted": "档案已删除",
+                "target_delete_failed": "档案删除失败"
             },
             "en": {
                 "page_title_config": "🎯 Game Configuration",
@@ -1536,7 +1573,7 @@
                 "label_stage": "Game Stage",
                 "label_objective": "Mission Objective",
                 "objective_analyze": "Standard Analysis",
-                "objective_attract": "Attraction Building",
+                "objective_attract": "inducing attraction",
                 "relationship_lover": "Lover",
                 "relationship_ex": "Ex",
                 "relationship_boss": "Boss",
@@ -1611,7 +1648,21 @@
                 "loading_decrypting_signal": "DECRYPTING_SIGNAL",
                 "loading_security_bypass": "SECURITY_BYPASS",
                 "decrypt_signal_searching": "SIGNAL_SEARCHING",
-                "decrypt_decrypting": "DECRYPTING"
+                "decrypt_decrypting": "DECRYPTING",
+                "guide_modal_title": "✅ Archive Ready",
+                "guide_modal_desc": "Archive is ready. Please return to Bot and send a conversation screenshot, chat history, or detailed text description to start soul dissection.",
+                "guide_modal_confirm": "I Understand",
+                "btn_edit": "Edit",
+                "btn_delete": "Delete",
+                "btn_save": "Save",
+                "delete_confirm_title": "⚠️ Warning",
+                "delete_confirm_desc": "Warning: Archive deletion is permanent and cannot be recovered. All game history and dominance data will be permanently lost. Confirm deletion?",
+                "delete_confirm_cancel": "Cancel",
+                "delete_confirm_ok": "Confirm Delete",
+                "target_updated": "Archive updated: {alias}",
+                "target_update_failed": "Archive update failed",
+                "target_deleted": "Archive deleted",
+                "target_delete_failed": "Archive deletion failed"
             },
             "ru": {
                 "page_title_config": "🎯 Конфигурация игры",
@@ -2517,6 +2568,10 @@
                     ${liveDot}
                     <span>${statusText}</span>
                 </div>
+                <div class="target-card-actions">
+                    <button class="target-card-action-btn edit" data-target-id="${target.id || target.target_id}" data-action="edit" title="${t('btn_edit')}">✏️</button>
+                    <button class="target-card-action-btn delete" data-target-id="${target.id || target.target_id}" data-action="delete" title="${t('btn_delete')}">🗑️</button>
+                </div>
                 <div class="target-card-header">
                     <div class="target-avatar">${targetIcon}</div>
                     <div class="target-info">
@@ -2535,19 +2590,51 @@
                 </div>
             `;
 
-            // 点击卡片事件
-            card.addEventListener('click', () => {
+            // 点击卡片事件（排除操作按钮区域）
+            card.addEventListener('click', (e) => {
+                // 如果点击的是操作按钮，不触发卡片点击事件
+                if (e.target.closest('.target-card-actions')) {
+                    return;
+                }
                 hapticFeedback.impact('medium');
                 // 发送数据回 Bot，请求查看详情
                 if (tg && tg.sendData) {
                     const data = JSON.stringify({
                         action: 'view_target',
-                        target_id: target.id,
+                        target_id: target.id || target.target_id,
                         timestamp: Date.now()
                     });
                     tg.sendData(data);
                 }
             });
+
+            // 编辑按钮事件
+            const editBtn = card.querySelector('.edit');
+            if (editBtn) {
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    hapticFeedback.impact('light');
+                    const targetId = editBtn.getAttribute('data-target-id');
+                    // 从全局 targets 数组中查找（需要在 renderTargetList 中设置）
+                    if (window.currentTargets) {
+                        const targetData = window.currentTargets.find(t => (t.id || t.target_id) == targetId);
+                        if (targetData) {
+                            showEditTargetModal(targetData);
+                        }
+                    }
+                });
+            }
+
+            // 删除按钮事件
+            const deleteBtn = card.querySelector('.delete');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    hapticFeedback.impact('light');
+                    const targetId = deleteBtn.getAttribute('data-target-id');
+                    showDeleteConfirmModal(targetId);
+                });
+            }
 
             return card;
         }
@@ -2555,6 +2642,9 @@
         // 渲染目标列表
         function renderTargetList(targets) {
             const targetList = document.getElementById('targetList');
+            
+            // 保存到全局变量，供 createTargetCard 中的事件监听器使用
+            window.currentTargets = targets;
 
             if (!targets || targets.length === 0) {
                 targetList.innerHTML = `
@@ -2572,6 +2662,73 @@
                 const card = createTargetCard(target);
                 targetList.appendChild(card);
             });
+        }
+
+        // 显示引导页
+        function showGuideModal() {
+            const modal = document.getElementById('guideModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        }
+
+        // 隐藏引导页
+        function hideGuideModal() {
+            const modal = document.getElementById('guideModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // 显示删除确认弹窗
+        function showDeleteConfirmModal(targetId) {
+            const modal = document.getElementById('deleteConfirmModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.setAttribute('data-target-id', targetId);
+            }
+        }
+
+        // 隐藏删除确认弹窗
+        function hideDeleteConfirmModal() {
+            const modal = document.getElementById('deleteConfirmModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.removeAttribute('data-target-id');
+            }
+        }
+
+        // 显示编辑目标弹窗（复用 targetCreationModal）
+        function showEditTargetModal(targetData) {
+            const modal = document.getElementById('targetCreationModal');
+            const nameInput = document.getElementById('targetNameInput');
+            const selectedIcon = document.getElementById('selectedIcon');
+            const confirmBtn = document.getElementById('confirmTargetCreation');
+            
+            // 设置编辑模式
+            modal.setAttribute('data-edit-mode', 'true');
+            modal.setAttribute('data-target-id', targetData.id || targetData.target_id);
+            
+            // 填充现有数据
+            nameInput.value = targetData.alias || targetData.name || '';
+            currentSelectedIcon = targetData.icon || '🎯';
+            selectedIcon.textContent = currentSelectedIcon;
+            
+            // 更新按钮文本
+            confirmBtn.textContent = t('btn_save') || 'Save';
+            confirmBtn.setAttribute('data-i18n', 'btn_save');
+            
+            // 清除错误提示
+            document.getElementById('targetNameError').classList.add('hidden');
+            document.getElementById('targetIconError').classList.add('hidden');
+            
+            // 显示弹窗
+            modal.classList.remove('hidden');
+            
+            // 隐藏主按钮
+            if (tg && tg.MainButton) {
+                tg.MainButton.hide();
+            }
         }
 
         // 示例数据（实际应从 Bot 或服务器获取）
@@ -2646,7 +2803,7 @@
             const userLanguage = window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code || 'en';
 
             const simpleTranslations = {
-                'zh': { title: "游戏配置", button: "开始分析" },
+                'zh': { title: "博弈配置", button: "开始分析" },
                 'en': { title: "Game Configuration", button: "Start Analysis" }
             };
 
@@ -2681,13 +2838,20 @@
             const nameInput = document.getElementById('targetNameInput');
             const iconSelector = document.getElementById('targetIconSelector');
             const selectedIcon = document.getElementById('selectedIcon');
+            const confirmBtn = document.getElementById('confirmTargetCreation');
 
-            // 重置表单
+            // 重置表单（创建模式）
+            modal.removeAttribute('data-edit-mode');
+            modal.removeAttribute('data-target-id');
             nameInput.value = t('new_target_default_name');
             currentSelectedIcon = '🎯';
             selectedIcon.textContent = '🎯';
             document.getElementById('targetNameError').classList.add('hidden');
             document.getElementById('targetIconError').classList.add('hidden');
+            
+            // 恢复按钮文本
+            confirmBtn.textContent = t('miniapp_target_creation_confirm') || 'Confirm Create';
+            confirmBtn.setAttribute('data-i18n', 'miniapp_target_creation_confirm');
 
             // 显示弹窗
             modal.classList.remove('hidden');
@@ -2724,9 +2888,12 @@
             }
         });
 
-        // 确认创建档案
+        // 确认创建/编辑档案
         document.getElementById('confirmTargetCreation').addEventListener('click', async () => {
             hapticFeedback.impact('medium');
+            const modal = document.getElementById('targetCreationModal');
+            const isEditMode = modal.getAttribute('data-edit-mode') === 'true';
+            const targetId = modal.getAttribute('data-target-id');
             const targetName = document.getElementById('targetNameInput').value.trim();
             const targetIcon = currentSelectedIcon;
 
@@ -2752,65 +2919,52 @@
                 return;
             }
 
-            // 发送数据到Bot创建新目标
+            // 发送数据到Bot
             if (tg && tg.sendData) {
-                const data = JSON.stringify({
-                    action: 'create_new_target',
-                    alias: targetName,
-                    icon: targetIcon,
-                    relationship: config.relationship,
-                    stage: config.stage,
-                    timestamp: Date.now()
-                });
+                let data;
+                if (isEditMode) {
+                    // 编辑模式
+                    data = JSON.stringify({
+                        action: 'edit_target',
+                        target_id: targetId,
+                        alias: targetName,
+                        icon: targetIcon,
+                        timestamp: Date.now()
+                    });
+                } else {
+                    // 创建模式
+                    data = JSON.stringify({
+                        action: 'create_new_target',
+                        alias: targetName,
+                        icon: targetIcon,
+                        relationship: config.relationship,
+                        stage: config.stage,
+                        timestamp: Date.now()
+                    });
+                }
 
                 try {
                     tg.sendData(data);
-                    showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
+                    if (isEditMode) {
+                        showToast(t('target_updated', { alias: targetName }), 'success');
+                    } else {
+                        showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
+                    }
                     hideTargetCreationModal();
 
-                    // 延迟后发送分析配置并显示解密动画
-                    setTimeout(() => {
-                        // ========== 获取数据：收集当前选中的'关系类型'和'博弈阶段' ==========
-                        const analysisData = {
-                            action: 'start_analysis',
-                            relationship: config.relationship,
-                            stage: config.stage,
-                            timestamp: Date.now()
-                        };
-
-                        // ========== 调用解密动画：先触发 startDecryption() 动画 ==========
-                        startDecryption();
-
-                        // ========== 发送并关闭：在动画运行 1.5 秒后，调用 sendData ==========
+                    // 如果是创建模式，显示引导页
+                    if (!isEditMode) {
                         setTimeout(() => {
-                            // 使用 window.Telegram.WebApp.sendData() 发送数据
-                            // 这会自动关闭小程序并将数据发回给 Bot
-                            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
-                                try {
-                                    window.Telegram.WebApp.sendData(JSON.stringify(analysisData));
-                                } catch (error) {
-                                    console.error('发送数据失败:', error);
-                                    stopDecryption();
-                                    showToast(t('status_failed'), 'error');
-                                }
-                            } else if (tg && tg.sendData) {
-                                // 兼容旧版本的 Telegram WebApp API
-                                try {
-                                    tg.sendData(JSON.stringify(analysisData));
-                                } catch (error) {
-                                    console.error('发送数据失败:', error);
-                                    stopDecryption();
-                                    showToast(t('status_failed'), 'error');
-                                }
-                            } else {
-                                stopDecryption();
-                                showToast(t('status_not_telegram'), 'error');
-                            }
-                        }, 1500); // 1.5 秒后发送数据
-                    }, 500);
+                            showGuideModal();
+                        }, 300);
+                    }
                 } catch (error) {
                     console.error('发送数据失败:', error);
-                    showToast(t('miniapp_target_creation_failed'), 'error');
+                    if (isEditMode) {
+                        showToast(t('target_update_failed'), 'error');
+                    } else {
+                        showToast(t('miniapp_target_creation_failed'), 'error');
+                    }
                 }
             }
         });
@@ -2819,6 +2973,85 @@
         document.getElementById('targetIconSelector').addEventListener('click', () => {
             hapticFeedback.impact('light');
             showEmojiPicker();
+        });
+
+        // 引导页确认按钮事件
+        document.getElementById('guideModalConfirm').addEventListener('click', () => {
+            hapticFeedback.impact('medium');
+            hideGuideModal();
+            
+            // 发送分析配置并关闭 MiniApp
+            const analysisData = {
+                action: 'start_analysis',
+                relationship: config.relationship,
+                stage: config.stage,
+                objective: config.objective || 'analyze',
+                timestamp: Date.now()
+            };
+
+            // 调用解密动画
+            startDecryption();
+
+            // 1.5 秒后发送数据并关闭
+            setTimeout(() => {
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
+                    try {
+                        window.Telegram.WebApp.sendData(JSON.stringify(analysisData));
+                    } catch (error) {
+                        console.error('发送数据失败:', error);
+                        stopDecryption();
+                        showToast(t('status_failed'), 'error');
+                    }
+                } else if (tg && tg.sendData) {
+                    try {
+                        tg.sendData(JSON.stringify(analysisData));
+                    } catch (error) {
+                        console.error('发送数据失败:', error);
+                        stopDecryption();
+                        showToast(t('status_failed'), 'error');
+                    }
+                } else {
+                    stopDecryption();
+                    showToast(t('status_not_telegram'), 'error');
+                }
+            }, 1500);
+        });
+
+        // 删除确认弹窗事件
+        let pendingDeleteTargetId = null;
+        
+        document.getElementById('deleteConfirmCancel').addEventListener('click', () => {
+            hapticFeedback.impact('light');
+            hideDeleteConfirmModal();
+            pendingDeleteTargetId = null;
+        });
+
+        document.getElementById('deleteConfirmOk').addEventListener('click', () => {
+            hapticFeedback.impact('medium');
+            const targetId = document.getElementById('deleteConfirmModal').getAttribute('data-target-id');
+            
+            if (targetId && tg && tg.sendData) {
+                const data = JSON.stringify({
+                    action: 'delete_target',
+                    target_id: targetId,
+                    timestamp: Date.now()
+                });
+                
+                try {
+                    tg.sendData(data);
+                    showToast(t('target_deleted'), 'success');
+                    hideDeleteConfirmModal();
+                    
+                    // 从列表中移除（如果存在）
+                    if (window.currentTargets) {
+                        window.currentTargets = window.currentTargets.filter(t => (t.id || t.target_id) != targetId);
+                        renderTargetList(window.currentTargets);
+                    }
+                } catch (error) {
+                    console.error('删除失败:', error);
+                    showToast(t('target_delete_failed'), 'error');
+                }
+            }
         });
 
         // ==================== Emoji 选择器相关函数 ====================
