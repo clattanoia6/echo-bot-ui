@@ -2774,12 +2774,15 @@
             }
         ];
 
+        // 统一数据源：初始化 window.currentTargets
+        window.currentTargets = sampleTargets;
+
         // 监听来自 Bot 的数据（实际实现中应该通过 Telegram WebApp 接收数据）
         // 这里先使用示例数据
         if (tg && tg.onEvent) {
             tg.onEvent('mainButtonClicked', () => {
                 // 当用户点击主按钮时，可以刷新列表
-                renderTargetList(sampleTargets);
+                renderTargetList(window.currentTargets);
             });
         }
 
@@ -2789,9 +2792,9 @@
                 const targetPage = item.dataset.page;
                 if (targetPage === 'folder') {
                     // 切换到档案页面时，加载目标列表
-                    // 实际应该从 Bot 获取数据，这里使用示例数据
+                    // 使用统一数据源 window.currentTargets
                     setTimeout(() => {
-                        renderTargetList(sampleTargets);
+                        renderTargetList(window.currentTargets);
                     }, 300);
                 }
             });
@@ -2799,7 +2802,7 @@
 
         // 初始化：如果当前是档案页面，加载数据
         if (document.getElementById('page-folder').classList.contains('active')) {
-            renderTargetList(sampleTargets);
+            renderTargetList(window.currentTargets);
         }
 
         // DOM 加载完成后初始化 i18n
@@ -2995,6 +2998,32 @@
                         showToast(t('target_updated', { alias: targetName }), 'success');
                         hideTargetCreationModal();
                     } else {
+                        // 完善新建档案后的同步逻辑：将新档案添加到 window.currentTargets
+                        // 初始化 window.currentTargets（如果不存在）
+                        if (!window.currentTargets) {
+                            window.currentTargets = [];
+                        }
+                        
+                        // 封装新创建的档案信息
+                        const newTarget = {
+                            id: Date.now(), // 生成临时 id
+                            target_id: Date.now(), // 同时设置 target_id 字段
+                            name: targetName, // 英文占位符
+                            alias: targetName, // 数据库中的 alias 字段
+                            icon: targetIcon,
+                            relationship: config.relationship,
+                            stage: config.stage,
+                            summary: targetSummary,
+                            status: 'live', // 新建的档案默认为 live 状态
+                            dominance: 0 // 新建的档案主导权指数默认为 0
+                        };
+                        
+                        // 将新对象 push 到 window.currentTargets 数组中
+                        window.currentTargets.push(newTarget);
+                        
+                        // 立即调用 renderTargetList 重新渲染一次列表
+                        renderTargetList(window.currentTargets);
+                        
                         showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
                         hideTargetCreationModal();
                         // 创建模式：显示引导页
