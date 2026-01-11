@@ -2906,7 +2906,9 @@
             const targetId = modal.getAttribute('data-target-id');
             const targetName = document.getElementById('targetNameInput').value.trim();
             const targetIcon = currentSelectedIcon;
-            const targetSummary = document.getElementById('targetSummaryInput').value.trim();
+            // 安全获取 summary：先获取元素，再获取值
+            const summaryInput = document.getElementById('targetSummaryInput');
+            const targetSummary = summaryInput ? summaryInput.value.trim() : '';
 
             let isValid = true;
 
