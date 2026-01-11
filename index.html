@@ -2569,6 +2569,27 @@
             const defaultIcon = '👤'; // 默认使用 👤
             const targetIcon = target.icon || defaultIcon;
 
+            // 解析并展示画像标签（traits）
+            let traitsHtml = '';
+            if (target.traits) {
+                try {
+                    const traits = typeof target.traits === 'string' ? JSON.parse(target.traits) : target.traits;
+                    if (Array.isArray(traits) && traits.length > 0) {
+                        const traitsText = traits.join('、');
+                        traitsHtml = `
+                            <div class="target-traits" style="margin-top: 8px; padding: 8px 12px; background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0.05) 100%); border-radius: 8px; border-left: 3px solid #06b6d4; display: flex; align-items: center; gap: 6px;">
+                                <span style="font-size: 11px; color: #06b6d4; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">性格：</span>
+                                <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                    ${traits.map(trait => `<span style="font-size: 10px; color: #a0aec0; background: rgba(6, 182, 212, 0.2); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(6, 182, 212, 0.3);">${trait}</span>`).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                } catch (e) {
+                    console.error('解析 traits 失败:', e);
+                }
+            }
+
             card.innerHTML = `
                 <div class="status-badge ${statusClass}">
                     ${liveDot}
@@ -2585,6 +2606,7 @@
                         <div class="target-meta">${relationshipText} · ${stageText}</div>
                     </div>
                 </div>
+                ${traitsHtml}
                 <div class="dominance-preview">
                     <div class="dominance-label">
                         <span>${t('dominance_label')}</span>
