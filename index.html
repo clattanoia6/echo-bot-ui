@@ -2904,11 +2904,19 @@
             const modal = document.getElementById('targetCreationModal');
             const isEditMode = modal.getAttribute('data-edit-mode') === 'true';
             const targetId = modal.getAttribute('data-target-id');
+            // 强制抓取：在点击'保存'那一刻从输入框和变量中实时抓取
             const targetName = document.getElementById('targetNameInput').value.trim();
-            const targetIcon = currentSelectedIcon;
+            const targetIcon = currentSelectedIcon;  // 从全局变量实时获取
             // 安全获取 summary：使用可选链操作符
             const summary = document.getElementById('targetSummaryInput')?.value || '';
             const targetSummary = summary.trim();
+            
+            // ID 校验：确保 target_id 正确对应正在编辑的档案 ID
+            if (isEditMode && !targetId) {
+                showToast(t('target_update_failed'), 'error');
+                console.error('编辑模式缺少 target_id');
+                return;
+            }
 
             let isValid = true;
 
@@ -2963,7 +2971,14 @@
                     if (isEditMode) {
                         showToast(t('target_updated', { alias: targetName }), 'success');
                         hideTargetCreationModal();
-                        // 编辑模式：直接关闭弹窗，不显示引导页
+                        // 编辑模式：自动关闭小程序，引导用户去点击 Bot 发送的新按钮
+                        setTimeout(() => {
+                            if (tg && tg.close) {
+                                tg.close();
+                            } else if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.close) {
+                                window.Telegram.WebApp.close();
+                            }
+                        }, 500);
                     } else {
                         showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
                         hideTargetCreationModal();
