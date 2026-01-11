@@ -2774,8 +2774,40 @@
             }
         ];
 
-        // 统一数据源：初始化 window.currentTargets
-        window.currentTargets = sampleTargets;
+        // 统一数据源：初始化 window.currentTargets（从 localStorage 读取或使用示例数据）
+        function loadTargetsFromLocal() {
+            try {
+                const savedTargets = localStorage.getItem('unsaid_echo_targets');
+                if (savedTargets) {
+                    // 如果读取到了数据，则使用 JSON.parse 后的结果
+                    return JSON.parse(savedTargets);
+                } else {
+                    // 如果没读取到（说明是第一次打开），则使用 sampleTargets 作为初始值
+                    return sampleTargets;
+                }
+            } catch (error) {
+                console.error('读取本地存储失败:', error);
+                // 如果解析失败，使用示例数据
+                return sampleTargets;
+            }
+        }
+
+        // 增加持久化保存函数
+        function saveTargetsToLocal() {
+            try {
+                localStorage.setItem('unsaid_echo_targets', JSON.stringify(window.currentTargets));
+            } catch (error) {
+                console.error('保存到本地存储失败:', error);
+            }
+        }
+
+        // 初始化 window.currentTargets
+        window.currentTargets = loadTargetsFromLocal();
+        
+        // 如果是第一次打开（使用示例数据），立即保存到本地存储
+        if (!localStorage.getItem('unsaid_echo_targets')) {
+            saveTargetsToLocal();
+        }
 
         // 监听来自 Bot 的数据（实际实现中应该通过 Telegram WebApp 接收数据）
         // 这里先使用示例数据
@@ -2991,6 +3023,9 @@
                                 
                                 // 立即调用 renderTargetList 重新渲染列表
                                 renderTargetList(window.currentTargets);
+                                
+                                // 编辑档案：同步保存到本地存储
+                                saveTargetsToLocal();
                             }
                         }
                         
@@ -3023,6 +3058,9 @@
                         
                         // 立即调用 renderTargetList 重新渲染一次列表
                         renderTargetList(window.currentTargets);
+                        
+                        // 新建档案：同步保存到本地存储
+                        saveTargetsToLocal();
                         
                         showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
                         hideTargetCreationModal();
@@ -3119,6 +3157,9 @@
                     if (window.currentTargets) {
                         window.currentTargets = window.currentTargets.filter(t => (t.id || t.target_id) != targetId);
                         renderTargetList(window.currentTargets);
+                        
+                        // 删除档案：同步保存到本地存储
+                        saveTargetsToLocal();
                     }
                 } catch (error) {
                     console.error('删除失败:', error);
