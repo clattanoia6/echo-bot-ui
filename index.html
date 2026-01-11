@@ -2365,7 +2365,7 @@
             };
 
             // ========== 调用解密动画：先触发 startDecryption() 动画 ==========
-            startDecryption();
+            // startDecryption(); // 暂时注释，以备后续移动使用
 
             // ========== 发送并关闭：在动画运行 1.5 秒后，调用 sendData ==========
             setTimeout(() => {
@@ -2378,7 +2378,7 @@
                         console.error('发送数据失败:', error);
 
                         // 停止解密动画
-                        stopDecryption();
+                        // stopDecryption(); // 暂时注释，以备后续移动使用
 
                         // 显示错误提示
                         statusCard.style.display = 'block';
@@ -2401,7 +2401,7 @@
                         console.error('发送数据失败:', error);
 
                         // 停止解密动画
-                        stopDecryption();
+                        // stopDecryption(); // 暂时注释，以备后续移动使用
 
                         // 显示错误提示
                         statusCard.style.display = 'block';
@@ -3063,7 +3063,7 @@
             };
 
             // 调用解密动画
-            startDecryption();
+            // startDecryption(); // 暂时注释，以备后续移动使用
 
             // 1.5 秒后发送数据并关闭
             setTimeout(() => {
@@ -3072,7 +3072,7 @@
                         window.Telegram.WebApp.sendData(JSON.stringify(analysisData));
                     } catch (error) {
                         console.error('发送数据失败:', error);
-                        stopDecryption();
+                        // stopDecryption(); // 暂时注释，以备后续移动使用
                         showToast(t('status_failed'), 'error');
                     }
                 } else if (tg && tg.sendData) {
@@ -3080,11 +3080,11 @@
                         tg.sendData(JSON.stringify(analysisData));
                     } catch (error) {
                         console.error('发送数据失败:', error);
-                        stopDecryption();
+                        // stopDecryption(); // 暂时注释，以备后续移动使用
                         showToast(t('status_failed'), 'error');
                     }
                 } else {
-                    stopDecryption();
+                    // stopDecryption(); // 暂时注释，以备后续移动使用
                     showToast(t('status_not_telegram'), 'error');
                 }
             }, 1500);
