@@ -1369,6 +1369,11 @@
                 <p id="targetIconError" class="text-red-400 text-xs mt-1 hidden" data-i18n="miniapp_target_icon_error"></p>
             </div>
 
+            <div class="mb-6">
+                <label for="targetSummaryInput" class="block text-sm font-medium text-gray-300 mb-2" data-i18n="miniapp_target_summary_label">备注/摘要</label>
+                <textarea id="targetSummaryInput" class="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:ring-cyan-500 focus:border-cyan-500 resize-none" rows="3" placeholder="请输入备注或摘要信息..." data-i18n-placeholder="miniapp_target_summary_placeholder" maxlength="500"></textarea>
+            </div>
+
             <div class="flex justify-end space-x-3">
                 <button id="cancelTargetCreation" class="btn-secondary" data-i18n="miniapp_target_creation_cancel">Cancel</button>
                 <button id="confirmTargetCreation" class="btn-primary" data-i18n="miniapp_target_creation_confirm">Confirm Create</button>
@@ -1548,6 +1553,8 @@
                 "miniapp_target_creation_icon_picker_food": "食物",
                 "miniapp_target_creation_icon_picker_travel": "旅行",
                 "miniapp_target_creation_icon_picker_flags": "旗帜",
+                "miniapp_target_summary_label": "备注/摘要",
+                "miniapp_target_summary_placeholder": "请输入备注或摘要信息...",
                 "loading_decrypting_signal": "DECRYPTING_SIGNAL",
                 "loading_security_bypass": "SECURITY_BYPASS",
                 "decrypt_signal_searching": "SIGNAL_SEARCHING",
@@ -1645,6 +1652,8 @@
                 "miniapp_target_creation_icon_picker_food": "Food",
                 "miniapp_target_creation_icon_picker_travel": "Travel",
                 "miniapp_target_creation_icon_picker_flags": "Flags",
+                "miniapp_target_summary_label": "Notes/Summary",
+                "miniapp_target_summary_placeholder": "Enter notes or summary information...",
                 "loading_decrypting_signal": "DECRYPTING_SIGNAL",
                 "loading_security_bypass": "SECURITY_BYPASS",
                 "decrypt_signal_searching": "SIGNAL_SEARCHING",
@@ -2308,9 +2317,6 @@
         // 强制确保按钮绑定（无拦截器）
         if (confirmBtn) {
             confirmBtn.addEventListener('click', () => {
-            // 🚨 调试埋点：第一行必须是 alert
-            alert('🚀 信号捕捉成功，准备发送数据！');
-            
             // 触感反馈
             hapticFeedback.impact('medium');
 
@@ -2703,6 +2709,7 @@
             const modal = document.getElementById('targetCreationModal');
             const nameInput = document.getElementById('targetNameInput');
             const selectedIcon = document.getElementById('selectedIcon');
+            const summaryInput = document.getElementById('targetSummaryInput');
             const confirmBtn = document.getElementById('confirmTargetCreation');
             
             // 设置编辑模式
@@ -2713,6 +2720,7 @@
             nameInput.value = targetData.alias || targetData.name || '';
             currentSelectedIcon = targetData.icon || '🎯';
             selectedIcon.textContent = currentSelectedIcon;
+            summaryInput.value = targetData.summary || '';
             
             // 更新按钮文本
             confirmBtn.textContent = t('btn_save') || 'Save';
@@ -2838,6 +2846,7 @@
             const nameInput = document.getElementById('targetNameInput');
             const iconSelector = document.getElementById('targetIconSelector');
             const selectedIcon = document.getElementById('selectedIcon');
+            const summaryInput = document.getElementById('targetSummaryInput');
             const confirmBtn = document.getElementById('confirmTargetCreation');
 
             // 重置表单（创建模式）
@@ -2846,6 +2855,7 @@
             nameInput.value = t('new_target_default_name');
             currentSelectedIcon = '🎯';
             selectedIcon.textContent = '🎯';
+            summaryInput.value = '';
             document.getElementById('targetNameError').classList.add('hidden');
             document.getElementById('targetIconError').classList.add('hidden');
             
@@ -2896,6 +2906,7 @@
             const targetId = modal.getAttribute('data-target-id');
             const targetName = document.getElementById('targetNameInput').value.trim();
             const targetIcon = currentSelectedIcon;
+            const targetSummary = document.getElementById('targetSummaryInput').value.trim();
 
             let isValid = true;
 
@@ -2929,6 +2940,7 @@
                         target_id: targetId,
                         alias: targetName,
                         icon: targetIcon,
+                        summary: targetSummary,
                         timestamp: Date.now()
                     });
                 } else {
@@ -2937,6 +2949,7 @@
                         action: 'create_new_target',
                         alias: targetName,
                         icon: targetIcon,
+                        summary: targetSummary,
                         relationship: config.relationship,
                         stage: config.stage,
                         timestamp: Date.now()
@@ -2947,13 +2960,12 @@
                     tg.sendData(data);
                     if (isEditMode) {
                         showToast(t('target_updated', { alias: targetName }), 'success');
+                        hideTargetCreationModal();
+                        // 编辑模式：直接关闭弹窗，不显示引导页
                     } else {
                         showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
-                    }
-                    hideTargetCreationModal();
-
-                    // 如果是创建模式，显示引导页
-                    if (!isEditMode) {
+                        hideTargetCreationModal();
+                        // 创建模式：显示引导页
                         setTimeout(() => {
                             showGuideModal();
                         }, 300);
