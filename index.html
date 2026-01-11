@@ -2969,16 +2969,31 @@
                 try {
                     tg.sendData(data);
                     if (isEditMode) {
+                        // 实现本地实时更新：更新 targets 数组
+                        if (window.currentTargets && targetId) {
+                            // 通过 targetId 找到 targets 数组中对应的档案
+                            const targetIndex = window.currentTargets.findIndex(t => 
+                                (t.id || t.target_id) == targetId
+                            );
+                            
+                            if (targetIndex !== -1) {
+                                // 更新档案的 alias（名称）、icon（图标）和 summary（备注）
+                                window.currentTargets[targetIndex].alias = targetName;
+                                window.currentTargets[targetIndex].icon = targetIcon;
+                                window.currentTargets[targetIndex].summary = targetSummary;
+                                // 同时更新 name 字段（如果存在）
+                                if (window.currentTargets[targetIndex].name !== undefined) {
+                                    window.currentTargets[targetIndex].name = targetName;
+                                }
+                                
+                                // 立即调用 renderTargetList 重新渲染列表
+                                renderTargetList(window.currentTargets);
+                            }
+                        }
+                        
+                        // 完善弹窗逻辑：确保提示和弹窗正常显示
                         showToast(t('target_updated', { alias: targetName }), 'success');
                         hideTargetCreationModal();
-                        // 编辑模式：自动关闭小程序，引导用户去点击 Bot 发送的新按钮
-                        setTimeout(() => {
-                            if (tg && tg.close) {
-                                tg.close();
-                            } else if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.close) {
-                                window.Telegram.WebApp.close();
-                            }
-                        }, 500);
                     } else {
                         showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
                         hideTargetCreationModal();
