@@ -1381,16 +1381,7 @@
         </div>
     </div>
 
-    <!-- 引导页弹窗（档案创建成功后） -->
-    <div id="guideModal" class="modal-overlay hidden">
-        <div class="modal-content glass">
-            <h3 class="mono text-xl font-semibold mb-4 text-cyan-400" data-i18n="guide_modal_title">✅ Archive Ready</h3>
-            <p class="text-sm text-gray-400 mb-6" data-i18n="guide_modal_desc">Archive is ready. Please return to Bot and send a conversation screenshot, chat history, or detailed text description to start soul dissection.</p>
-            <div class="flex justify-end">
-                <button id="guideModalConfirm" class="btn-primary" data-i18n="guide_modal_confirm">I Understand</button>
-            </div>
-        </div>
-    </div>
+    <!-- guideModal 已移除，操作说明由 Bot 直接发送 -->
 
     <!-- 删除确认弹窗 -->
     <div id="deleteConfirmModal" class="modal-overlay hidden">
@@ -2692,21 +2683,7 @@
             });
         }
 
-        // 显示引导页
-        function showGuideModal() {
-            const modal = document.getElementById('guideModal');
-            if (modal) {
-                modal.classList.remove('hidden');
-            }
-        }
-
-        // 隐藏引导页
-        function hideGuideModal() {
-            const modal = document.getElementById('guideModal');
-            if (modal) {
-                modal.classList.add('hidden');
-            }
-        }
+        // guideModal 已移除，操作说明由 Bot 直接发送
 
         // 显示删除确认弹窗
         function showDeleteConfirmModal(targetId) {
@@ -3086,10 +3063,10 @@
                         
                         showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
                         hideTargetCreationModal();
-                        // 创建模式：显示引导页
+                        // 创建模式：直接关闭 MiniApp（操作说明已由 Bot 发送）
                         setTimeout(() => {
-                            showGuideModal();
-                        }, 300);
+                            tg.close();
+                        }, 500);
                     }
                 } catch (error) {
                     console.error('发送数据失败:', error);
@@ -3108,47 +3085,7 @@
             showEmojiPicker();
         });
 
-        // 引导页确认按钮事件
-        document.getElementById('guideModalConfirm').addEventListener('click', () => {
-            hapticFeedback.impact('medium');
-            hideGuideModal();
-            
-            // 发送分析配置并关闭 MiniApp
-            const analysisData = {
-                action: 'start_analysis',
-                relationship: config.relationship,
-                stage: config.stage,
-                objective: config.objective || 'analyze',
-                timestamp: Date.now()
-            };
-
-            // 调用解密动画
-            // startDecryption(); // 暂时注释，以备后续移动使用
-
-            // 1.5 秒后发送数据并关闭
-            setTimeout(() => {
-                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
-                    try {
-                        window.Telegram.WebApp.sendData(JSON.stringify(analysisData));
-                    } catch (error) {
-                        console.error('发送数据失败:', error);
-                        // stopDecryption(); // 暂时注释，以备后续移动使用
-                        showToast(t('status_failed'), 'error');
-                    }
-                } else if (tg && tg.sendData) {
-                    try {
-                        tg.sendData(JSON.stringify(analysisData));
-                    } catch (error) {
-                        console.error('发送数据失败:', error);
-                        // stopDecryption(); // 暂时注释，以备后续移动使用
-                        showToast(t('status_failed'), 'error');
-                    }
-                } else {
-                    // stopDecryption(); // 暂时注释，以备后续移动使用
-                    showToast(t('status_not_telegram'), 'error');
-                }
-            }, 1500);
-        });
+        // guideModal 已移除，不再需要引导页确认按钮事件
 
         // 删除确认弹窗事件
         let pendingDeleteTargetId = null;
