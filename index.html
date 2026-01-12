@@ -1381,7 +1381,16 @@
         </div>
     </div>
 
-    <!-- guideModal 已移除，操作说明由 Bot 直接发送 -->
+    <!-- 引导弹窗 -->
+    <div id="guideModal" class="modal-overlay hidden">
+        <div class="modal-content glass">
+            <h3 class="mono text-xl font-semibold mb-4 text-cyan-400" data-i18n="guide_modal_title">✅ 档案已就绪</h3>
+            <p class="text-sm text-gray-300 mb-6" data-i18n="guide_modal_desc">档案已就绪，请返回 Bot 发送截图或聊天记录。</p>
+            <div class="flex justify-end">
+                <button id="guideModalConfirm" class="btn-primary" data-i18n="guide_modal_confirm">我知道了</button>
+            </div>
+        </div>
+    </div>
 
     <!-- 删除确认弹窗 -->
     <div id="deleteConfirmModal" class="modal-overlay hidden">
@@ -2683,7 +2692,23 @@
             });
         }
 
-        // guideModal 已移除，操作说明由 Bot 直接发送
+        // 显示引导弹窗
+        function showGuideModal() {
+            const guideModal = document.getElementById('guideModal');
+            if (guideModal) {
+                guideModal.classList.remove('hidden');
+                // 更新多语言文本
+                updateI18n();
+            }
+        }
+
+        // 隐藏引导弹窗
+        function hideGuideModal() {
+            const guideModal = document.getElementById('guideModal');
+            if (guideModal) {
+                guideModal.classList.add('hidden');
+            }
+        }
 
         // 显示删除确认弹窗
         function showDeleteConfirmModal(targetId) {
@@ -2974,35 +2999,44 @@
                 return;
             }
 
-            // 发送数据到Bot
-            if (tg && tg.sendData) {
-                let data;
-                if (isEditMode) {
-                    // 编辑模式
-                    data = JSON.stringify({
-                        action: 'edit_target',
-                        target_id: targetId,
-                        alias: targetName,
-                        icon: targetIcon,
-                        summary: targetSummary,
-                        timestamp: Date.now()
-                    });
-                } else {
-                    // 创建模式
-                    data = JSON.stringify({
-                        action: 'create_new_target',
-                        alias: targetName,
-                        icon: targetIcon,
-                        summary: targetSummary,
-                        relationship: config.relationship,
-                        stage: config.stage,
-                        timestamp: Date.now()
-                    });
-                }
+            // 准备数据（但不立即发送）
+            let data;
+            if (isEditMode) {
+                // 编辑模式
+                data = JSON.stringify({
+                    action: 'edit_target',
+                    target_id: targetId,
+                    alias: targetName,
+                    icon: targetIcon,
+                    summary: targetSummary,
+                    timestamp: Date.now()
+                });
+            } else {
+                // 创建模式
+                data = JSON.stringify({
+                    action: 'create_new_target',
+                    alias: targetName,
+                    icon: targetIcon,
+                    summary: targetSummary,
+                    relationship: config.relationship,
+                    stage: config.stage,
+                    timestamp: Date.now()
+                });
+            }
 
-                try {
-                    tg.sendData(data);
-                    if (isEditMode) {
+            // 存储数据到全局变量，供 guideModal 确认按钮使用
+            window.pendingTargetData = data;
+            window.pendingTargetIsEdit = isEditMode;
+            window.pendingTargetName = targetName;
+            window.pendingTargetIcon = targetIcon;
+            window.pendingTargetSummary = targetSummary;
+            window.pendingTargetId = targetId;
+
+            if (isEditMode) {
+                // 编辑模式：直接发送数据并更新本地
+                if (tg && tg.sendData) {
+                    try {
+                        tg.sendData(data);
                         // 实现本地实时更新：更新 targets 数组
                         if (window.currentTargets && targetId) {
                             // 通过 targetId 找到 targets 数组中对应的档案
@@ -3031,51 +3065,42 @@
                         // 完善弹窗逻辑：确保提示和弹窗正常显示
                         showToast(t('target_updated', { alias: targetName }), 'success');
                         hideTargetCreationModal();
-                    } else {
-                        // 完善新建档案后的同步逻辑：将新档案添加到 window.currentTargets
-                        // 初始化 window.currentTargets（如果不存在）
-                        if (!window.currentTargets) {
-                            window.currentTargets = [];
-                        }
-                        
-                        // 封装新创建的档案信息
-                        const newTarget = {
-                            id: Date.now(), // 生成临时 id
-                            target_id: Date.now(), // 同时设置 target_id 字段
-                            name: targetName, // 英文占位符
-                            alias: targetName, // 数据库中的 alias 字段
-                            icon: targetIcon,
-                            relationship: config.relationship,
-                            stage: config.stage,
-                            summary: targetSummary,
-                            status: 'live', // 新建的档案默认为 live 状态
-                            dominance: 0 // 新建的档案主导权指数默认为 0
-                        };
-                        
-                        // 将新对象 push 到 window.currentTargets 数组中
-                        window.currentTargets.push(newTarget);
-                        
-                        // 立即调用 renderTargetList 重新渲染一次列表
-                        renderTargetList(window.currentTargets);
-                        
-                        // 新建档案：同步保存到本地存储
-                        saveTargetsToLocal();
-                        
-                        showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
-                        hideTargetCreationModal();
-                        // 创建模式：直接关闭 MiniApp（操作说明已由 Bot 发送）
-                        setTimeout(() => {
-                            tg.close();
-                        }, 500);
-                    }
-                } catch (error) {
-                    console.error('发送数据失败:', error);
-                    if (isEditMode) {
+                    } catch (error) {
+                        console.error('发送数据失败:', error);
                         showToast(t('target_update_failed'), 'error');
-                    } else {
-                        showToast(t('miniapp_target_creation_failed'), 'error');
                     }
                 }
+            } else {
+                // 创建模式：先显示引导弹窗，不立即发送数据
+                // 更新本地数据
+                if (!window.currentTargets) {
+                    window.currentTargets = [];
+                }
+                
+                const newTarget = {
+                    id: Date.now(),
+                    target_id: Date.now(),
+                    name: targetName,
+                    alias: targetName,
+                    icon: targetIcon,
+                    relationship: config.relationship,
+                    stage: config.stage,
+                    summary: targetSummary,
+                    status: 'live',
+                    dominance: 0
+                };
+                
+                window.currentTargets.push(newTarget);
+                renderTargetList(window.currentTargets);
+                saveTargetsToLocal();
+                
+                showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
+                hideTargetCreationModal();
+                
+                // 显示引导弹窗（不立即发送数据）
+                setTimeout(() => {
+                    showGuideModal();
+                }, 300);
             }
         });
 
@@ -3085,7 +3110,20 @@
             showEmojiPicker();
         });
 
-        // guideModal 已移除，不再需要引导页确认按钮事件
+        // 引导弹窗确认按钮事件
+        const guideModalConfirm = document.getElementById('guideModalConfirm');
+        if (guideModalConfirm) {
+            guideModalConfirm.addEventListener('click', () => {
+                hapticFeedback.impact('medium');
+                hideGuideModal();
+                // 关闭 MiniApp
+                setTimeout(() => {
+                    if (tg && tg.close) {
+                        tg.close();
+                    }
+                }, 200);
+            });
+        }
 
         // 删除确认弹窗事件
         let pendingDeleteTargetId = null;
