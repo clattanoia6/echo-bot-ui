@@ -2763,75 +2763,29 @@
             }
         }
 
-        // 示例数据（实际应从 Bot 或服务器获取）
-        // 注意：name 字段使用英文占位符，实际渲染时会根据 lang 环境进行翻译
-        const sampleTargets = [
-            {
-                id: 1,
-                name: 'Ex-A', // 英文占位符，实际应从数据库获取 alias
-                alias: 'Ex-A', // 数据库中的 alias 字段
-                icon: '💔',
-                relationship: 'ex',
-                stage: 'cold',
-                status: 'live',
-                dominance: 65
-            },
-            {
-                id: 2,
-                name: 'Colleague-B', // 英文占位符
-                alias: 'Colleague-B',
-                icon: '👔',
-                relationship: 'colleague',
-                stage: 'ambiguous',
-                status: 'live',
-                dominance: 45
-            },
-            {
-                id: 3,
-                name: 'Target-C', // 英文占位符
-                alias: 'Target-C',
-                icon: '🎯',
-                relationship: 'lover',
-                stage: 'harvest',
-                status: 'archived',
-                dominance: 85
-            }
-        ];
-
-        // 统一数据源：初始化 window.currentTargets（从 localStorage 读取或使用示例数据）
-        function loadTargetsFromLocal() {
+        // 档案数据必须完全通过 Bot 下发，禁止前端自造假数据
+        // 从 URL 参数中读取 targets（base64 编码的 JSON）
+        function loadTargetsFromURL() {
             try {
-                const savedTargets = localStorage.getItem('unsaid_echo_targets');
-                if (savedTargets) {
-                    // 如果读取到了数据，则使用 JSON.parse 后的结果
-                    return JSON.parse(savedTargets);
-                } else {
-                    // 如果没读取到（说明是第一次打开），则使用 sampleTargets 作为初始值
-                    return sampleTargets;
+                const urlParams = new URLSearchParams(window.location.search);
+                const targetsEncoded = urlParams.get('targets');
+                if (targetsEncoded) {
+                    // 解码 base64 并解析 JSON
+                    const targetsJson = atob(targetsEncoded);
+                    const targets = JSON.parse(targetsJson);
+                    console.log('✓ 从 URL 参数加载档案数据:', targets.length, '个档案');
+                    return targets;
                 }
             } catch (error) {
-                console.error('读取本地存储失败:', error);
-                // 如果解析失败，使用示例数据
-                return sampleTargets;
+                console.error('从 URL 加载档案数据失败:', error);
             }
+            // 如果没有 URL 参数或解析失败，返回空数组
+            console.log('⚠️ 未找到 URL 参数 targets，返回空数组');
+            return [];
         }
 
-        // 增加持久化保存函数
-        function saveTargetsToLocal() {
-            try {
-                localStorage.setItem('unsaid_echo_targets', JSON.stringify(window.currentTargets));
-            } catch (error) {
-                console.error('保存到本地存储失败:', error);
-            }
-        }
-
-        // 初始化 window.currentTargets
-        window.currentTargets = loadTargetsFromLocal();
-        
-        // 如果是第一次打开（使用示例数据），立即保存到本地存储
-        if (!localStorage.getItem('unsaid_echo_targets')) {
-            saveTargetsToLocal();
-        }
+        // 初始化 window.currentTargets（完全从 Bot 下发，禁止假数据）
+        window.currentTargets = loadTargetsFromURL();
 
         // 监听来自 Bot 的数据（实际实现中应该通过 Telegram WebApp 接收数据）
         // 这里先使用示例数据
@@ -3056,9 +3010,6 @@
                                 
                                 // 立即调用 renderTargetList 重新渲染列表
                                 renderTargetList(window.currentTargets);
-                                
-                                // 编辑档案：同步保存到本地存储
-                                saveTargetsToLocal();
                             }
                         }
                         
@@ -3092,7 +3043,6 @@
                 
                 window.currentTargets.push(newTarget);
                 renderTargetList(window.currentTargets);
-                saveTargetsToLocal();
                 
                 showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
                 hideTargetCreationModal();
@@ -3116,12 +3066,35 @@
             guideModalConfirm.addEventListener('click', () => {
                 hapticFeedback.impact('medium');
                 hideGuideModal();
-                // 关闭 MiniApp
-                setTimeout(() => {
-                    if (tg && tg.close) {
-                        tg.close();
+                
+                // 强制绑定发送动作：必须在 close 前执行 tg.sendData
+                // 确保用户点击弹窗上的'我知道了'按钮时，数据 100% 发回给 Bot
+                if (window.pendingTargetData && tg && tg.sendData) {
+                    try {
+                        tg.sendData(window.pendingTargetData);
+                        console.log('✓ 数据已发送到 Bot:', window.pendingTargetData);
+                        
+                        // 清理临时数据
+                        window.pendingTargetData = null;
+                        window.pendingTargetIsEdit = null;
+                        window.pendingTargetName = null;
+                        window.pendingTargetIcon = null;
+                        window.pendingTargetSummary = null;
+                        window.pendingTargetId = null;
+                        
+                        // 发送成功后立即关闭 MiniApp
+                        if (tg && tg.close) {
+                            tg.close();
+                        }
+                    } catch (error) {
+                        console.error('发送数据失败:', error);
+                        showToast(t('miniapp_target_creation_failed'), 'error');
+                        // 如果发送失败，不关闭 MiniApp
                     }
-                }, 200);
+                } else {
+                    console.error('⚠️ window.pendingTargetData 不存在或 tg.sendData 不可用');
+                    showToast(t('miniapp_target_creation_failed'), 'error');
+                }
             });
         }
 
@@ -3154,9 +3127,6 @@
                     if (window.currentTargets) {
                         window.currentTargets = window.currentTargets.filter(t => (t.id || t.target_id) != targetId);
                         renderTargetList(window.currentTargets);
-                        
-                        // 删除档案：同步保存到本地存储
-                        saveTargetsToLocal();
                     }
                 } catch (error) {
                     console.error('删除失败:', error);
@@ -3673,4 +3643,5 @@
         window.stopDecryption = stopDecryption;
     </script>
 </body>
+</html>
 </html>
