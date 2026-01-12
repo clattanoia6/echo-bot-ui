@@ -3091,11 +3091,12 @@
                 hapticFeedback.impact('medium');
                 hideGuideModal();
                 
-                // 解决'我知道了'不关窗的策略：修改 guideModalConfirm 事件
-                // 执行 tg.sendData(window.pendingTargetData)
-                // 注意：通知用户 tg.sendData 会触发 Telegram 自动关闭机制。如果环境允许（如 PC 端），则手动调用 tg.close()
+                // 优化'数据离场'逻辑：确保 guideModalConfirm 的逻辑为
+                // 点击瞬间先执行 tg.sendData，100毫秒延迟后再执行 tg.close()
+                // 这能防止因小程序关闭太快导致信号还没发出去就断网了
                 if (window.pendingTargetData && tg && tg.sendData) {
                     try {
+                        // 点击瞬间先执行 tg.sendData
                         tg.sendData(window.pendingTargetData);
                         console.log('✓ 数据已发送到 Bot:', window.pendingTargetData);
                         
@@ -3107,17 +3108,13 @@
                         window.pendingTargetSummary = null;
                         window.pendingTargetId = null;
                         
-                        // 注意：tg.sendData 会触发 Telegram 自动关闭机制
-                        // 如果环境允许（如 PC 端），则手动调用 tg.close()
-                        // 检测是否为 PC 端（通过 user agent 或平台检测）
-                        const isPC = !/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                        if (isPC && tg && tg.close) {
-                            // PC 端可能需要手动关闭
-                            setTimeout(() => {
+                        // 100毫秒延迟后再执行 tg.close()
+                        // 这能防止因小程序关闭太快导致信号还没发出去就断网了
+                        setTimeout(() => {
+                            if (tg && tg.close) {
                                 tg.close();
-                            }, 500);
-                        }
-                        // 移动端：tg.sendData 会自动关闭，无需手动调用
+                            }
+                        }, 100);
                     } catch (error) {
                         console.error('发送数据失败:', error);
                         showToast(t('miniapp_target_creation_failed'), 'error');
