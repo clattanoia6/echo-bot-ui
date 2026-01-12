@@ -2764,9 +2764,10 @@
         }
 
         // 档案数据必须完全通过 Bot 下发，禁止前端自造假数据
-        // 从 URL 参数中读取 targets（base64 编码的 JSON）
+        // 双源数据读取：优先读取 URL 参数；如果 URL 参数为空，则读取 localStorage
         function loadTargetsFromURL() {
             try {
+                // 优先读取 URL 参数
                 const urlParams = new URLSearchParams(window.location.search);
                 const targetsEncoded = urlParams.get('targets');
                 if (targetsEncoded) {
@@ -2774,13 +2775,28 @@
                     const targetsJson = atob(targetsEncoded);
                     const targets = JSON.parse(targetsJson);
                     console.log('✓ 从 URL 参数加载档案数据:', targets.length, '个档案');
+                    // 同步保存到 localStorage 作为缓存镜像
+                    localStorage.setItem('unsaid_echo_local_targets', JSON.stringify(targets));
                     return targets;
                 }
             } catch (error) {
                 console.error('从 URL 加载档案数据失败:', error);
             }
-            // 如果没有 URL 参数或解析失败，返回空数组
-            console.log('⚠️ 未找到 URL 参数 targets，返回空数组');
+            
+            // 如果 URL 参数为空，则读取 localStorage
+            try {
+                const cachedTargets = localStorage.getItem('unsaid_echo_local_targets');
+                if (cachedTargets) {
+                    const targets = JSON.parse(cachedTargets);
+                    console.log('✓ 从 localStorage 加载档案数据:', targets.length, '个档案');
+                    return targets;
+                }
+            } catch (error) {
+                console.error('从 localStorage 加载档案数据失败:', error);
+            }
+            
+            // 如果都没有，返回空数组
+            console.log('⚠️ 未找到 URL 参数 targets 和 localStorage 缓存，返回空数组');
             return [];
         }
 
@@ -3010,6 +3026,9 @@
                                 
                                 // 立即调用 renderTargetList 重新渲染列表
                                 renderTargetList(window.currentTargets);
+                                
+                                // 同步保存到 localStorage
+                                localStorage.setItem('unsaid_echo_local_targets', JSON.stringify(window.currentTargets));
                             }
                         }
                         
@@ -3044,6 +3063,11 @@
                 window.currentTargets.push(newTarget);
                 renderTargetList(window.currentTargets);
                 
+                // 解决'档案页为空'的逻辑自愈：添加本地缓存镜像
+                // 在 confirmTargetCreation 成功后，除了 push 到数组，必须同步执行 localStorage.setItem
+                localStorage.setItem('unsaid_echo_local_targets', JSON.stringify(window.currentTargets));
+                console.log('✓ 已同步保存到 localStorage:', window.currentTargets.length, '个档案');
+                
                 showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
                 hideTargetCreationModal();
                 
@@ -3067,8 +3091,9 @@
                 hapticFeedback.impact('medium');
                 hideGuideModal();
                 
-                // 强制绑定发送动作：必须在 close 前执行 tg.sendData
-                // 确保用户点击弹窗上的'我知道了'按钮时，数据 100% 发回给 Bot
+                // 解决'我知道了'不关窗的策略：修改 guideModalConfirm 事件
+                // 执行 tg.sendData(window.pendingTargetData)
+                // 注意：通知用户 tg.sendData 会触发 Telegram 自动关闭机制。如果环境允许（如 PC 端），则手动调用 tg.close()
                 if (window.pendingTargetData && tg && tg.sendData) {
                     try {
                         tg.sendData(window.pendingTargetData);
@@ -3082,10 +3107,17 @@
                         window.pendingTargetSummary = null;
                         window.pendingTargetId = null;
                         
-                        // 发送成功后立即关闭 MiniApp
-                        if (tg && tg.close) {
-                            tg.close();
+                        // 注意：tg.sendData 会触发 Telegram 自动关闭机制
+                        // 如果环境允许（如 PC 端），则手动调用 tg.close()
+                        // 检测是否为 PC 端（通过 user agent 或平台检测）
+                        const isPC = !/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                        if (isPC && tg && tg.close) {
+                            // PC 端可能需要手动关闭
+                            setTimeout(() => {
+                                tg.close();
+                            }, 500);
                         }
+                        // 移动端：tg.sendData 会自动关闭，无需手动调用
                     } catch (error) {
                         console.error('发送数据失败:', error);
                         showToast(t('miniapp_target_creation_failed'), 'error');
