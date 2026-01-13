@@ -16,6 +16,9 @@
 
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Supabase JS SDK -->
+    <script src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js'></script>
 
     <style>
         * {
@@ -2765,43 +2768,59 @@
         }
 
         // 档案数据必须完全通过 Bot 下发，禁止前端自造假数据
-        // 修复'旧链接抹除新数据' Bug：只有当 URL 参数中的 targets 不为空（长度 > 0）时，才允许覆盖 localStorage
-        // 如果 URL 里的数据是空的，必须优先读取 localStorage 中的数据
+        // 彻底修复档案'失踪' Bug：优先读取 localStorage，只有当 URL 参数中的 targets 长度大于 0 且与本地数据不同时，才允许更新 localStorage
+        // 目的：防止旧的/空的 URL 链接抹除用户刚刚创建的新档案
         function loadTargetsFromURL() {
+            // 第一步：优先读取 localStorage
+            let localTargets = [];
             try {
-                // 优先读取 URL 参数
+                const cachedTargets = localStorage.getItem('unsaid_echo_local_targets');
+                if (cachedTargets) {
+                    localTargets = JSON.parse(cachedTargets);
+                    if (localTargets && localTargets.length > 0) {
+                        console.log('✓ 从 localStorage 加载档案数据:', localTargets.length, '个档案');
+                    }
+                }
+            } catch (error) {
+                console.error('从 localStorage 加载档案数据失败:', error);
+            }
+            
+            // 第二步：尝试读取 URL 参数
+            try {
                 const urlParams = new URLSearchParams(window.location.search);
                 const targetsEncoded = urlParams.get('targets');
                 if (targetsEncoded) {
                     // 解码 base64 并解析 JSON
                     const targetsJson = atob(targetsEncoded);
-                    const targets = JSON.parse(targetsJson);
-                    // 只有当 URL 参数中的 targets 不为空（长度 > 0）时，才允许覆盖 localStorage
-                    if (targets && targets.length > 0) {
-                        console.log('✓ 从 URL 参数加载档案数据:', targets.length, '个档案');
-                        // 同步保存到 localStorage 作为缓存镜像
-                        localStorage.setItem('unsaid_echo_local_targets', JSON.stringify(targets));
-                        return targets;
+                    const urlTargets = JSON.parse(targetsJson);
+                    
+                    // 只有当 URL 参数中的 targets 长度大于 0 且与本地数据不同时，才允许更新 localStorage
+                    if (urlTargets && urlTargets.length > 0) {
+                        // 比较 URL 数据和本地数据是否不同（通过 JSON 字符串比较）
+                        const localTargetsStr = JSON.stringify(localTargets);
+                        const urlTargetsStr = JSON.stringify(urlTargets);
+                        
+                        if (urlTargetsStr !== localTargetsStr) {
+                            console.log('✓ URL 参数中的档案数据与本地不同，更新 localStorage:', urlTargets.length, '个档案');
+                            // 同步保存到 localStorage 作为缓存镜像
+                            localStorage.setItem('unsaid_echo_local_targets', JSON.stringify(urlTargets));
+                            return urlTargets;
+                        } else {
+                            console.log('✓ URL 参数中的档案数据与本地相同，使用本地数据');
+                            return localTargets;
+                        }
                     } else {
-                        console.log('⚠️ URL 参数中的 targets 为空数组，尝试从 localStorage 读取');
+                        console.log('⚠️ URL 参数中的 targets 为空数组，使用本地数据');
+                        return localTargets;
                     }
                 }
             } catch (error) {
                 console.error('从 URL 加载档案数据失败:', error);
             }
             
-            // 如果 URL 里的数据是空的，必须优先读取 localStorage 中的数据
-            try {
-                const cachedTargets = localStorage.getItem('unsaid_echo_local_targets');
-                if (cachedTargets) {
-                    const targets = JSON.parse(cachedTargets);
-                    if (targets && targets.length > 0) {
-                        console.log('✓ 从 localStorage 加载档案数据:', targets.length, '个档案');
-                        return targets;
-                    }
-                }
-            } catch (error) {
-                console.error('从 localStorage 加载档案数据失败:', error);
+            // 第三步：如果 URL 没有有效数据，返回本地数据（如果有的话）
+            if (localTargets && localTargets.length > 0) {
+                return localTargets;
             }
             
             // 如果都没有，返回空数组（显示'暂无档案'）
@@ -2809,8 +2828,56 @@
             return [];
         }
 
-        // 初始化 window.currentTargets（完全从 Bot 下发，禁止假数据）
-        window.currentTargets = loadTargetsFromURL();
+        // 初始化 Supabase 客户端
+        const SUPABASE_URL = 'https://diykesubijqqiuhfibfy.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_WW6Jw4kC-PciumLKOywFJg_pH3ZbqaK';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // 双源自愈：加载页面时，优先从 Supabase 实时获取该用户的档案
+        async function loadTargetsFromSupabase() {
+            try {
+                // 获取用户 ID
+                const userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null;
+                if (!userId) {
+                    console.log('⚠️ 无法获取用户 ID，尝试从 URL 或 localStorage 加载');
+                    return loadTargetsFromURL();
+                }
+                
+                // 从 Supabase 实时获取档案
+                const { data, error } = await supabaseClient
+                    .from('targets')
+                    .select('target_id, alias, icon, defense_value, summary, traits')
+                    .eq('user_id', userId)
+                    .order('updated_at', { ascending: false })
+                    .order('created_at', { ascending: false })
+                    .limit(100);
+                
+                if (error) {
+                    console.error('从 Supabase 加载档案失败:', error);
+                    return loadTargetsFromURL();
+                }
+                
+                if (data && data.length > 0) {
+                    console.log('✓ 从 Supabase 实时加载档案数据:', data.length, '个档案');
+                    // 同步保存到 localStorage 作为缓存镜像
+                    localStorage.setItem('unsaid_echo_local_targets', JSON.stringify(data));
+                    return data;
+                } else {
+                    console.log('⚠️ Supabase 中没有档案，尝试从 URL 或 localStorage 加载');
+                    return loadTargetsFromURL();
+                }
+            } catch (error) {
+                console.error('加载 Supabase 档案失败:', error);
+                return loadTargetsFromURL();
+            }
+        }
+        
+        // 初始化 window.currentTargets：优先从 Supabase 实时获取
+        window.currentTargets = [];
+        loadTargetsFromSupabase().then(targets => {
+            window.currentTargets = targets || [];
+            renderTargetList(window.currentTargets);
+        });
 
         // 监听来自 Bot 的数据（实际实现中应该通过 Telegram WebApp 接收数据）
         // 这里先使用示例数据
@@ -2990,42 +3057,75 @@
             window.pendingTargetSummary = targetSummary;
             window.pendingTargetId = targetId;
 
-            if (isEditMode) {
-                // 编辑模式：直接发送数据并更新本地
-                if (tg && tg.sendData) {
-                    try {
-                        tg.sendData(data);
-                        // 实现本地实时更新：更新 targets 数组
-                        if (window.currentTargets && targetId) {
-                            // 通过 targetId 找到 targets 数组中对应的档案
-                            const targetIndex = window.currentTargets.findIndex(t => 
-                                (t.id || t.target_id) == targetId
-                            );
-                            
-                            // 废除小程序'私库'：禁止使用 localStorage
-                            // 编辑模式：数据更新后，需要等待 Bot 返回最新数据
-                            // 暂时不更新本地列表，等待 Bot 发送新按钮
-                        }
-                        
-                        // 完善弹窗逻辑：确保提示和弹窗正常显示
-                        showToast(t('target_updated', { alias: targetName }), 'success');
-                        hideTargetCreationModal();
-                    } catch (error) {
-                        console.error('发送数据失败:', error);
-                        showToast(t('target_update_failed'), 'error');
+            // 废除 sendData：改为直接调用 Supabase API
+            const userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null;
+            if (!userId) {
+                showToast(t('miniapp_target_creation_failed'), 'error');
+                console.error('无法获取用户 ID');
+                return;
+            }
+            
+            try {
+                if (isEditMode) {
+                    // 编辑模式：直接调用 Supabase API 更新
+                    const { data: updatedData, error } = await supabaseClient
+                        .from('targets')
+                        .update({
+                            alias: targetName,
+                            icon: targetIcon,
+                            summary: targetSummary,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('target_id', targetId)
+                        .eq('user_id', userId)
+                        .select();
+                    
+                    if (error) {
+                        throw error;
                     }
+                    
+                    // 实现'不关窗'同步：操作成功后只需执行 renderTargetList 刷新页面
+                    await loadTargetsFromSupabase().then(targets => {
+                        window.currentTargets = targets || [];
+                        renderTargetList(window.currentTargets);
+                    });
+                    
+                    showToast(t('target_updated', { alias: targetName }), 'success');
+                    hideTargetCreationModal();
+                } else {
+                    // 创建模式：直接调用 Supabase API 插入
+                    const { data: newData, error } = await supabaseClient
+                        .from('targets')
+                        .insert({
+                            user_id: userId,
+                            alias: targetName,
+                            icon: targetIcon,
+                            summary: targetSummary,
+                            defense_value: 0,
+                            traits: '[]',
+                            relationship: config.relationship || '',
+                            stage: config.stage || '',
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        })
+                        .select();
+                    
+                    if (error) {
+                        throw error;
+                    }
+                    
+                    // 实现'不关窗'同步：操作成功后只需执行 renderTargetList 刷新页面
+                    await loadTargetsFromSupabase().then(targets => {
+                        window.currentTargets = targets || [];
+                        renderTargetList(window.currentTargets);
+                    });
+                    
+                    showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
+                    hideTargetCreationModal();
                 }
-            } else {
-                // 强制同步创建流程：前端禁止手动 push 到本地列表
-                // 只需弹出引导窗，点击确认后执行 tg.sendData 发送给 Bot
-                // 后端会在收到创建指令并存库后，立刻回复一条带'📁 进入档案库'按钮的消息
-                showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
-                hideTargetCreationModal();
-                
-                // 显示引导弹窗（不立即发送数据）
-                setTimeout(() => {
-                    showGuideModal();
-                }, 300);
+            } catch (error) {
+                console.error('Supabase 操作失败:', error);
+                showToast(t('miniapp_target_creation_failed'), 'error');
             }
         });
 
@@ -3035,41 +3135,15 @@
             showEmojiPicker();
         });
 
-        // 引导弹窗确认按钮事件
+        // 引导弹窗确认按钮事件（已废弃，因为现在直接调用 Supabase API，不需要引导弹窗）
+        // 但保留代码以防其他地方调用
         const guideModalConfirm = document.getElementById('guideModalConfirm');
         if (guideModalConfirm) {
             guideModalConfirm.addEventListener('click', () => {
                 hapticFeedback.impact('medium');
                 hideGuideModal();
-                
-                // 强制同步确认链路：点击瞬间执行 tg.sendData，然后立即执行 tg.close()
-                if (window.pendingTargetData && tg && tg.sendData) {
-                    try {
-                        // 点击瞬间先执行 tg.sendData
-                        tg.sendData(window.pendingTargetData);
-                        console.log('✓ 数据已发送到 Bot:', window.pendingTargetData);
-                        
-                        // 清理临时数据
-                        window.pendingTargetData = null;
-                        window.pendingTargetIsEdit = null;
-                        window.pendingTargetName = null;
-                        window.pendingTargetIcon = null;
-                        window.pendingTargetSummary = null;
-                        window.pendingTargetId = null;
-                        
-                        // 立即执行 tg.close()
-                        if (tg && tg.close) {
-                            tg.close();
-                        }
-                    } catch (error) {
-                        console.error('发送数据失败:', error);
-                        showToast(t('miniapp_target_creation_failed'), 'error');
-                        // 如果发送失败，不关闭 MiniApp
-                    }
-                } else {
-                    console.error('⚠️ window.pendingTargetData 不存在或 tg.sendData 不可用');
-                    showToast(t('miniapp_target_creation_failed'), 'error');
-                }
+                // 由于现在直接调用 Supabase API，引导弹窗已不再需要
+                // 数据已经通过 Supabase 同步，只需关闭弹窗即可
             });
         }
 
@@ -3082,30 +3156,45 @@
             pendingDeleteTargetId = null;
         });
 
-        document.getElementById('deleteConfirmOk').addEventListener('click', () => {
+        document.getElementById('deleteConfirmOk').addEventListener('click', async () => {
             hapticFeedback.impact('medium');
             const targetId = document.getElementById('deleteConfirmModal').getAttribute('data-target-id');
             
-            if (targetId && tg && tg.sendData) {
-                const data = JSON.stringify({
-                    action: 'delete_target',
-                    target_id: targetId,
-                    timestamp: Date.now()
+            if (!targetId) {
+                showToast(t('target_delete_failed'), 'error');
+                return;
+            }
+            
+            // 废除 sendData：改为直接调用 Supabase API 删除
+            const userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null;
+            if (!userId) {
+                showToast(t('target_delete_failed'), 'error');
+                console.error('无法获取用户 ID');
+                return;
+            }
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('targets')
+                    .delete()
+                    .eq('target_id', targetId)
+                    .eq('user_id', userId);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                // 实现'不关窗'同步：操作成功后只需执行 renderTargetList 刷新页面
+                await loadTargetsFromSupabase().then(targets => {
+                    window.currentTargets = targets || [];
+                    renderTargetList(window.currentTargets);
                 });
                 
-                try {
-                    tg.sendData(data);
-                    showToast(t('target_deleted'), 'success');
-                    hideDeleteConfirmModal();
-                    
-                    // 从列表中移除（如果存在）
-                    // 废除小程序'私库'：禁止手动更新本地列表
-                    // 删除操作后，需要等待 Bot 返回最新数据
-                    // 暂时不更新本地列表，等待 Bot 发送新按钮
-                } catch (error) {
-                    console.error('删除失败:', error);
-                    showToast(t('target_delete_failed'), 'error');
-                }
+                showToast(t('target_deleted'), 'success');
+                hideDeleteConfirmModal();
+            } catch (error) {
+                console.error('删除失败:', error);
+                showToast(t('target_delete_failed'), 'error');
             }
         });
 
