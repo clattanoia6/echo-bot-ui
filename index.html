@@ -1206,7 +1206,7 @@
     <!-- 博弈页面 (首页) -->
     <div class="page active" id="page-target">
         <div class="card">
-            <h2 class="mono text-xl font-semibold mb-8 text-cyan-400" data-i18n="page_title_config">🎯 博弈配置</h2>
+            <h2 class="mono text-xl font-semibold mb-8 text-cyan-400" data-i18n="page_title_config"></h2>
 
             <!-- 关系类型选择器 -->
             <div class="mb-8">
@@ -1242,7 +1242,7 @@
 
             <!-- 确认按钮（开始分析） -->
             <button class="btn-primary scan-animation btn-soul-dissection" id="confirmBtn">
-                <span class="mono" data-i18n="btn_start_analysis">⚡ 开始分析</span>
+                <span class="mono" data-i18n="btn_start_analysis"></span>
             </button>
     </div>
 
@@ -2030,7 +2030,8 @@
 
         // 检测语言
         function detectLanguage() {
-            // 1. 尝试从 URL 参数获取
+            // 锁定 URL 优先级：检查 detectLanguage 函数，确保它优先读取 urlParams.get('lang')
+            // 如果该值存在，严禁再读取手机系统的 language_code
             const urlParams = new URLSearchParams(window.location.search);
             const urlLang = urlParams.get('lang');
             if (urlLang) {
@@ -2041,19 +2042,19 @@
                 }
             }
 
-            // 2. 尝试从 Telegram WebApp 获取
+            // 如果 URL 参数不存在，才尝试从 Telegram WebApp 获取（作为兜底）
             if (typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp) {
                 const tg = window.Telegram.WebApp;
                 if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code) {
                     const tgLang = normalizeLangCode(tg.initDataUnsafe.user.language_code);
                     if (tgLang in translations) {
-                        console.log(`🌐 Language detected from Telegram: ${tgLang}`);
+                        console.log(`🌐 Language detected from Telegram (fallback): ${tgLang}`);
                         return tgLang;
                     }
                 }
             }
 
-            // 3. 默认英语
+            // 默认英语
             console.log(`🌐 Language defaulted to: en`);
             return "en";
         }
@@ -2832,38 +2833,17 @@
         }
 
         // DOM 加载完成后初始化 i18n
-        function initUI() {
-            initI18n();
-
-            // ==================== 根据 Telegram 用户语言更新 UI ====================
-            // 获取 Telegram 用户的语言设置
-            const userLanguage = window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code || 'en';
-
-            const simpleTranslations = {
-                'zh': { title: "博弈配置", button: "开始分析" },
-                'en': { title: "Game Configuration", button: "Start Analysis" }
-            };
-
-            // 根据语言更新 UI
-            const lang = userLanguage.startsWith('zh') ? 'zh' : 'en';
-            const titleElement = document.querySelector('h2[data-i18n="page_title_config"]');
-            const buttonElement = document.querySelector('#confirmBtn span[data-i18n="btn_start_analysis"]');
-
-            if (titleElement && simpleTranslations[lang]) {
-                titleElement.innerText = simpleTranslations[lang].title;
-            }
-            if (buttonElement && simpleTranslations[lang]) {
-                buttonElement.innerText = simpleTranslations[lang].button;
-            }
-            
-            console.log('✅ UI 初始化完成');
-        }
-
+        // 清理冲突逻辑：彻底删除 initUI 函数，该函数根据 user.language_code 强制覆盖标题和按钮，干扰了 Bot 传递的 lang 参数
+        // 移除 DOM 监听器：删除文件末尾调用 initUI 的 document.addEventListener('DOMContentLoaded', initUI);
+        
+        // 强化 i18n 引擎：确保页面加载时只调用 initI18n()
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initUI);
+            document.addEventListener('DOMContentLoaded', function() {
+                initI18n();
+            });
         } else {
             // DOM 已经加载完成
-            initUI();
+            initI18n();
         }
 
         // ==================== 档案初始化弹窗相关函数 ====================
