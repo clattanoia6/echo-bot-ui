@@ -2765,27 +2765,47 @@
         }
 
         // 档案数据必须完全通过 Bot 下发，禁止前端自造假数据
-        // 废除小程序'私库'：彻底删除所有涉及 localStorage 的逻辑
-        // 原则：档案页面（page-folder）的数据必须且仅能来源于 URL 参数中的 targets
-        // 如果 URL 里没有，就显示'暂无档案'
+        // 修复'旧链接抹除新数据' Bug：只有当 URL 参数中的 targets 不为空（长度 > 0）时，才允许覆盖 localStorage
+        // 如果 URL 里的数据是空的，必须优先读取 localStorage 中的数据
         function loadTargetsFromURL() {
             try {
-                // 只从 URL 参数读取，禁止使用 localStorage
+                // 优先读取 URL 参数
                 const urlParams = new URLSearchParams(window.location.search);
                 const targetsEncoded = urlParams.get('targets');
                 if (targetsEncoded) {
                     // 解码 base64 并解析 JSON
                     const targetsJson = atob(targetsEncoded);
                     const targets = JSON.parse(targetsJson);
-                    console.log('✓ 从 URL 参数加载档案数据:', targets.length, '个档案');
-                    return targets;
+                    // 只有当 URL 参数中的 targets 不为空（长度 > 0）时，才允许覆盖 localStorage
+                    if (targets && targets.length > 0) {
+                        console.log('✓ 从 URL 参数加载档案数据:', targets.length, '个档案');
+                        // 同步保存到 localStorage 作为缓存镜像
+                        localStorage.setItem('unsaid_echo_local_targets', JSON.stringify(targets));
+                        return targets;
+                    } else {
+                        console.log('⚠️ URL 参数中的 targets 为空数组，尝试从 localStorage 读取');
+                    }
                 }
             } catch (error) {
                 console.error('从 URL 加载档案数据失败:', error);
             }
             
-            // 如果 URL 参数为空，返回空数组（显示'暂无档案'）
-            console.log('⚠️ URL 参数中没有 targets，返回空数组');
+            // 如果 URL 里的数据是空的，必须优先读取 localStorage 中的数据
+            try {
+                const cachedTargets = localStorage.getItem('unsaid_echo_local_targets');
+                if (cachedTargets) {
+                    const targets = JSON.parse(cachedTargets);
+                    if (targets && targets.length > 0) {
+                        console.log('✓ 从 localStorage 加载档案数据:', targets.length, '个档案');
+                        return targets;
+                    }
+                }
+            } catch (error) {
+                console.error('从 localStorage 加载档案数据失败:', error);
+            }
+            
+            // 如果都没有，返回空数组（显示'暂无档案'）
+            console.log('⚠️ URL 参数和 localStorage 都没有有效数据，返回空数组');
             return [];
         }
 
