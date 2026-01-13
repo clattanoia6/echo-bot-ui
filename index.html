@@ -1216,7 +1216,7 @@
                     <button class="segment-option" data-type="relationship" data-value="ex" data-i18n="relationship_ex">前任</button>
                     <button class="segment-option" data-type="relationship" data-value="boss" data-i18n="relationship_boss">上司</button>
                     <button class="segment-option" data-type="relationship" data-value="colleague" data-i18n="relationship_colleague">同事</button>
-                    <button class="segment-option custom-btn" id="rel-custom-btn" data-type="relationship" data-value="custom">✍️ Custom</button>
+                    <button class="segment-option custom-btn" id="rel-custom-btn" data-type="relationship" data-value="custom" data-i18n="btn_custom"></button>
             </div>
             </div>
 
@@ -1227,7 +1227,7 @@
                     <button class="segment-option active" data-type="stage" data-value="ambiguous" data-i18n="stage_ambiguous">暧昧</button>
                     <button class="segment-option" data-type="stage" data-value="cold" data-i18n="stage_cold">冷战</button>
                     <button class="segment-option" data-type="stage" data-value="harvest" data-i18n="stage_harvest">收割</button>
-                    <button class="segment-option custom-btn" id="stage-custom-btn" data-type="stage" data-value="custom">✍️ Custom</button>
+                    <button class="segment-option custom-btn" id="stage-custom-btn" data-type="stage" data-value="custom" data-i18n="btn_custom"></button>
                 </div>
             </div>
 
@@ -2765,10 +2765,12 @@
         }
 
         // 档案数据必须完全通过 Bot 下发，禁止前端自造假数据
-        // 双源数据读取：优先读取 URL 参数；如果 URL 参数为空，则读取 localStorage
+        // 废除小程序'私库'：彻底删除所有涉及 localStorage 的逻辑
+        // 原则：档案页面（page-folder）的数据必须且仅能来源于 URL 参数中的 targets
+        // 如果 URL 里没有，就显示'暂无档案'
         function loadTargetsFromURL() {
             try {
-                // 优先读取 URL 参数
+                // 只从 URL 参数读取，禁止使用 localStorage
                 const urlParams = new URLSearchParams(window.location.search);
                 const targetsEncoded = urlParams.get('targets');
                 if (targetsEncoded) {
@@ -2776,28 +2778,14 @@
                     const targetsJson = atob(targetsEncoded);
                     const targets = JSON.parse(targetsJson);
                     console.log('✓ 从 URL 参数加载档案数据:', targets.length, '个档案');
-                    // 同步保存到 localStorage 作为缓存镜像
-                    localStorage.setItem('unsaid_echo_local_targets', JSON.stringify(targets));
                     return targets;
                 }
             } catch (error) {
                 console.error('从 URL 加载档案数据失败:', error);
             }
             
-            // 如果 URL 参数为空，则读取 localStorage
-            try {
-                const cachedTargets = localStorage.getItem('unsaid_echo_local_targets');
-                if (cachedTargets) {
-                    const targets = JSON.parse(cachedTargets);
-                    console.log('✓ 从 localStorage 加载档案数据:', targets.length, '个档案');
-                    return targets;
-                }
-            } catch (error) {
-                console.error('从 localStorage 加载档案数据失败:', error);
-            }
-            
-            // 如果都没有，返回空数组
-            console.log('⚠️ 未找到 URL 参数 targets 和 localStorage 缓存，返回空数组');
+            // 如果 URL 参数为空，返回空数组（显示'暂无档案'）
+            console.log('⚠️ URL 参数中没有 targets，返回空数组');
             return [];
         }
 
@@ -2994,22 +2982,9 @@
                                 (t.id || t.target_id) == targetId
                             );
                             
-                            if (targetIndex !== -1) {
-                                // 更新档案的 alias（名称）、icon（图标）和 summary（备注）
-                                window.currentTargets[targetIndex].alias = targetName;
-                                window.currentTargets[targetIndex].icon = targetIcon;
-                                window.currentTargets[targetIndex].summary = targetSummary;
-                                // 同时更新 name 字段（如果存在）
-                                if (window.currentTargets[targetIndex].name !== undefined) {
-                                    window.currentTargets[targetIndex].name = targetName;
-                                }
-                                
-                                // 立即调用 renderTargetList 重新渲染列表
-                                renderTargetList(window.currentTargets);
-                                
-                                // 同步保存到 localStorage
-                                localStorage.setItem('unsaid_echo_local_targets', JSON.stringify(window.currentTargets));
-                            }
+                            // 废除小程序'私库'：禁止使用 localStorage
+                            // 编辑模式：数据更新后，需要等待 Bot 返回最新数据
+                            // 暂时不更新本地列表，等待 Bot 发送新按钮
                         }
                         
                         // 完善弹窗逻辑：确保提示和弹窗正常显示
@@ -3021,33 +2996,9 @@
                     }
                 }
             } else {
-                // 创建模式：先显示引导弹窗，不立即发送数据
-                // 更新本地数据
-                if (!window.currentTargets) {
-                    window.currentTargets = [];
-                }
-                
-                const newTarget = {
-                    id: Date.now(),
-                    target_id: Date.now(),
-                    name: targetName,
-                    alias: targetName,
-                    icon: targetIcon,
-                    relationship: config.relationship,
-                    stage: config.stage,
-                    summary: targetSummary,
-                    status: 'live',
-                    dominance: 0
-                };
-                
-                window.currentTargets.push(newTarget);
-                renderTargetList(window.currentTargets);
-                
-                // 解决'档案页为空'的逻辑自愈：添加本地缓存镜像
-                // 在 confirmTargetCreation 成功后，除了 push 到数组，必须同步执行 localStorage.setItem
-                localStorage.setItem('unsaid_echo_local_targets', JSON.stringify(window.currentTargets));
-                console.log('✓ 已同步保存到 localStorage:', window.currentTargets.length, '个档案');
-                
+                // 强制同步创建流程：前端禁止手动 push 到本地列表
+                // 只需弹出引导窗，点击确认后执行 tg.sendData 发送给 Bot
+                // 后端会在收到创建指令并存库后，立刻回复一条带'📁 进入档案库'按钮的消息
                 showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
                 hideTargetCreationModal();
                 
@@ -3071,9 +3022,7 @@
                 hapticFeedback.impact('medium');
                 hideGuideModal();
                 
-                // 优化'数据离场'逻辑：确保 guideModalConfirm 的逻辑为
-                // 点击瞬间先执行 tg.sendData，100毫秒延迟后再执行 tg.close()
-                // 这能防止因小程序关闭太快导致信号还没发出去就断网了
+                // 强制同步确认链路：点击瞬间执行 tg.sendData，然后立即执行 tg.close()
                 if (window.pendingTargetData && tg && tg.sendData) {
                     try {
                         // 点击瞬间先执行 tg.sendData
@@ -3088,13 +3037,10 @@
                         window.pendingTargetSummary = null;
                         window.pendingTargetId = null;
                         
-                        // 100毫秒延迟后再执行 tg.close()
-                        // 这能防止因小程序关闭太快导致信号还没发出去就断网了
-                        setTimeout(() => {
-                            if (tg && tg.close) {
-                                tg.close();
-                            }
-                        }, 100);
+                        // 立即执行 tg.close()
+                        if (tg && tg.close) {
+                            tg.close();
+                        }
                     } catch (error) {
                         console.error('发送数据失败:', error);
                         showToast(t('miniapp_target_creation_failed'), 'error');
@@ -3133,10 +3079,9 @@
                     hideDeleteConfirmModal();
                     
                     // 从列表中移除（如果存在）
-                    if (window.currentTargets) {
-                        window.currentTargets = window.currentTargets.filter(t => (t.id || t.target_id) != targetId);
-                        renderTargetList(window.currentTargets);
-                    }
+                    // 废除小程序'私库'：禁止手动更新本地列表
+                    // 删除操作后，需要等待 Bot 返回最新数据
+                    // 暂时不更新本地列表，等待 Bot 发送新按钮
                 } catch (error) {
                     console.error('删除失败:', error);
                     showToast(t('target_delete_failed'), 'error');
