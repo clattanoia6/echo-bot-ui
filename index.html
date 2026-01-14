@@ -2343,99 +2343,14 @@
                 return;
             }
 
-            // 检查是否是新目标（这里暂时假设都是新目标，后续可以根据实际情况判断）
-            // TODO: 从Bot获取现有目标列表，判断是否为新目标
-            const isNewTarget = true; // 占位符：实际应该从Bot获取
+            // 恢复按钮状态
+            confirmBtn.disabled = false;
+            confirmBtn.style.opacity = '1';
+            confirmBtn.style.cursor = 'pointer';
+            statusCard.style.display = 'none';
 
-            if (isNewTarget) {
-                // 恢复按钮状态
-                confirmBtn.disabled = false;
-                confirmBtn.style.opacity = '1';
-                confirmBtn.style.cursor = 'pointer';
-                statusCard.style.display = 'none';
-
-                // 显示档案初始化弹窗
-                showTargetCreationModal();
-                return;
-            }
-
-            // ========== 获取数据：收集当前选中的'关系类型'、'博弈阶段'和'任务目标' ==========
-            const dataToSend = {
-                action: 'start_analysis',
-                relationship: config.relationship,
-                stage: config.stage,
-                objective: config.objective || 'analyze',  // 任务目标：analyze 或 attract
-                timestamp: Date.now()
-            };
-
-            // ========== 调用解密动画：先触发 startDecryption() 动画 ==========
-            // startDecryption(); // 暂时注释，以备后续移动使用
-
-            // ========== 发送并关闭：在动画运行 1.5 秒后，调用 sendData ==========
-            setTimeout(() => {
-                // 使用 window.Telegram.WebApp.sendData() 发送数据
-                // 这会自动关闭小程序并将数据发回给 Bot
-                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
-                    try {
-                        window.Telegram.WebApp.sendData(JSON.stringify(dataToSend));
-                    } catch (error) {
-                        console.error('发送数据失败:', error);
-
-                        // 停止解密动画
-                        // stopDecryption(); // 暂时注释，以备后续移动使用
-
-                        // 显示错误提示
-                        statusCard.style.display = 'block';
-                        statusText.textContent = t('status_failed');
-                        statusText.className = 'text-sm text-red-400';
-
-                        // 恢复按钮状态
-                        setTimeout(() => {
-                            statusCard.style.display = 'none';
-                            confirmBtn.disabled = false;
-                            confirmBtn.style.opacity = '1';
-                            confirmBtn.style.cursor = 'pointer';
-                        }, 2000);
-                    }
-                } else if (tg && tg.sendData) {
-                    // 兼容旧版本的 Telegram WebApp API
-                    try {
-                        tg.sendData(JSON.stringify(dataToSend));
-                    } catch (error) {
-                        console.error('发送数据失败:', error);
-
-                        // 停止解密动画
-                        // stopDecryption(); // 暂时注释，以备后续移动使用
-
-                        // 显示错误提示
-                        statusCard.style.display = 'block';
-                        statusText.textContent = t('status_failed');
-                        statusText.className = 'text-sm text-red-400';
-
-                        // 恢复按钮状态
-                        setTimeout(() => {
-                            statusCard.style.display = 'none';
-                            confirmBtn.disabled = false;
-                            confirmBtn.style.opacity = '1';
-                            confirmBtn.style.cursor = 'pointer';
-                        }, 2000);
-                    }
-                } else {
-                    // 非 Telegram 环境，停止解密动画并显示提示
-                    stopDecryption();
-
-                    statusCard.style.display = 'block';
-                    statusText.textContent = t('status_not_telegram');
-                    statusText.className = 'text-sm text-amber-400';
-
-                    setTimeout(() => {
-                        statusCard.style.display = 'none';
-                        confirmBtn.disabled = false;
-                        confirmBtn.style.opacity = '1';
-                        confirmBtn.style.cursor = 'pointer';
-                    }, 2000);
-                }
-            }, 1500); // 1.5 秒后发送数据
+            // 显示档案初始化弹窗（严禁发送任何 Telegram 信号）
+            showTargetCreationModal();
             });
         } else {
             console.warn('⚠️ 未找到 confirmBtn 按钮');
@@ -2767,66 +2682,7 @@
             }
         }
 
-        // 档案数据必须完全通过 Bot 下发，禁止前端自造假数据
-        // 彻底修复档案'失踪' Bug：优先读取 localStorage，只有当 URL 参数中的 targets 长度大于 0 且与本地数据不同时，才允许更新 localStorage
-        // 目的：防止旧的/空的 URL 链接抹除用户刚刚创建的新档案
-        function loadTargetsFromURL() {
-            // 第一步：优先读取 localStorage
-            let localTargets = [];
-            try {
-                const cachedTargets = localStorage.getItem('unsaid_echo_local_targets');
-                if (cachedTargets) {
-                    localTargets = JSON.parse(cachedTargets);
-                    if (localTargets && localTargets.length > 0) {
-                        console.log('✓ 从 localStorage 加载档案数据:', localTargets.length, '个档案');
-                    }
-                }
-            } catch (error) {
-                console.error('从 localStorage 加载档案数据失败:', error);
-            }
-            
-            // 第二步：尝试读取 URL 参数
-            try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const targetsEncoded = urlParams.get('targets');
-                if (targetsEncoded) {
-                    // 解码 base64 并解析 JSON
-                    const targetsJson = atob(targetsEncoded);
-                    const urlTargets = JSON.parse(targetsJson);
-                    
-                    // 只有当 URL 参数中的 targets 长度大于 0 且与本地数据不同时，才允许更新 localStorage
-                    if (urlTargets && urlTargets.length > 0) {
-                        // 比较 URL 数据和本地数据是否不同（通过 JSON 字符串比较）
-                        const localTargetsStr = JSON.stringify(localTargets);
-                        const urlTargetsStr = JSON.stringify(urlTargets);
-                        
-                        if (urlTargetsStr !== localTargetsStr) {
-                            console.log('✓ URL 参数中的档案数据与本地不同，更新 localStorage:', urlTargets.length, '个档案');
-                            // 同步保存到 localStorage 作为缓存镜像
-                            localStorage.setItem('unsaid_echo_local_targets', JSON.stringify(urlTargets));
-                            return urlTargets;
-                        } else {
-                            console.log('✓ URL 参数中的档案数据与本地相同，使用本地数据');
-                            return localTargets;
-                        }
-                    } else {
-                        console.log('⚠️ URL 参数中的 targets 为空数组，使用本地数据');
-                        return localTargets;
-                    }
-                }
-            } catch (error) {
-                console.error('从 URL 加载档案数据失败:', error);
-            }
-            
-            // 第三步：如果 URL 没有有效数据，返回本地数据（如果有的话）
-            if (localTargets && localTargets.length > 0) {
-                return localTargets;
-            }
-            
-            // 如果都没有，返回空数组（显示'暂无档案'）
-            console.log('⚠️ URL 参数和 localStorage 都没有有效数据，返回空数组');
-            return [];
-        }
+        // 档案数据必须完全通过 Supabase 实时获取，禁止使用 localStorage 缓存
 
         // 初始化 Supabase 客户端
         const SUPABASE_URL = 'https://diykesubijqqiuhfibfy.supabase.co';
@@ -2835,14 +2691,15 @@
         
         // 双源自愈：加载页面时，优先从 Supabase 实时获取该用户的档案
         async function loadTargetsFromSupabase() {
+            // 强制 User ID 校验：必须在开头检查
+            const userId = tg?.initDataUnsafe?.user?.id;
+            if (!userId) {
+                alert('Critical: No User ID detected!');
+                console.error('Critical: No User ID detected!');
+                return [];
+            }
+            
             try {
-                // 获取用户 ID
-                const userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null;
-                if (!userId) {
-                    console.log('⚠️ 无法获取用户 ID，尝试从 URL 或 localStorage 加载');
-                    return loadTargetsFromURL();
-                }
-                
                 // 从 Supabase 实时获取档案
                 const { data, error } = await supabaseClient
                     .from('targets')
@@ -2854,21 +2711,19 @@
                 
                 if (error) {
                     console.error('从 Supabase 加载档案失败:', error);
-                    return loadTargetsFromURL();
+                    return [];
                 }
                 
                 if (data && data.length > 0) {
                     console.log('✓ 从 Supabase 实时加载档案数据:', data.length, '个档案');
-                    // 同步保存到 localStorage 作为缓存镜像
-                    localStorage.setItem('unsaid_echo_local_targets', JSON.stringify(data));
                     return data;
                 } else {
-                    console.log('⚠️ Supabase 中没有档案，尝试从 URL 或 localStorage 加载');
-                    return loadTargetsFromURL();
+                    console.log('⚠️ Supabase 中没有档案，显示暂无档案');
+                    return [];
                 }
             } catch (error) {
                 console.error('加载 Supabase 档案失败:', error);
-                return loadTargetsFromURL();
+                return [];
             }
         }
         
@@ -3165,7 +3020,6 @@
                 return;
             }
             
-            // 废除 sendData：改为直接调用 Supabase API 删除
             const userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null;
             if (!userId) {
                 showToast(t('target_delete_failed'), 'error');
@@ -3174,6 +3028,7 @@
             }
             
             try {
+                // 必须确保：只有这一行删除操作
                 const { error } = await supabaseClient
                     .from('targets')
                     .delete()
@@ -3184,7 +3039,7 @@
                     throw error;
                 }
                 
-                // 实现'不关窗'同步：操作成功后只需执行 renderTargetList 刷新页面
+                // 执行完后直接调用 renderTargetList
                 await loadTargetsFromSupabase().then(targets => {
                     window.currentTargets = targets || [];
                     renderTargetList(window.currentTargets);
