@@ -2692,10 +2692,24 @@
         // 双源自愈：加载页面时，优先从 Supabase 实时获取该用户的档案
         async function loadTargetsFromSupabase() {
             // 强制 User ID 校验：必须在开头检查
-            const userId = tg?.initDataUnsafe?.user?.id;
+            let userId = tg?.initDataUnsafe?.user?.id;
+            
+            // 备用检查：如果 tg.initDataUnsafe.user.id 没拿到，尝试从 URL 参数中解析 userId
             if (!userId) {
-                alert('Critical: No User ID detected!');
-                console.error('Critical: No User ID detected!');
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const userIdFromUrl = urlParams.get('userId');
+                    if (userIdFromUrl) {
+                        userId = parseInt(userIdFromUrl, 10);
+                        console.log('✓ 从 URL 参数获取到 User ID:', userId);
+                    }
+                } catch (error) {
+                    console.error('从 URL 参数解析 User ID 失败:', error);
+                }
+            }
+            
+            if (!userId) {
+                console.warn('⚠️ 无法获取用户 ID，跳过数据加载');
                 return [];
             }
             
@@ -2728,11 +2742,33 @@
         }
         
         // 初始化 window.currentTargets：优先从 Supabase 实时获取
+        // 延迟数据加载：必须封装在 tg.ready() 回调中，确保 Telegram 环境完全就绪
         window.currentTargets = [];
-        loadTargetsFromSupabase().then(targets => {
-            window.currentTargets = targets || [];
-            renderTargetList(window.currentTargets);
-        });
+        
+        if (tg) {
+            tg.ready(() => {
+                // 确保 Telegram 环境完全就绪后再尝试获取 userId
+                loadTargetsFromSupabase().then(targets => {
+                    window.currentTargets = targets || [];
+                    renderTargetList(window.currentTargets);
+                });
+            });
+        } else {
+            // 非 Telegram 环境，延迟加载（等待 DOM 完全就绪）
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    loadTargetsFromSupabase().then(targets => {
+                        window.currentTargets = targets || [];
+                        renderTargetList(window.currentTargets);
+                    });
+                });
+            } else {
+                loadTargetsFromSupabase().then(targets => {
+                    window.currentTargets = targets || [];
+                    renderTargetList(window.currentTargets);
+                });
+            }
+        }
 
         // 监听来自 Bot 的数据（实际实现中应该通过 Telegram WebApp 接收数据）
         // 这里先使用示例数据
@@ -2913,7 +2949,23 @@
             window.pendingTargetId = targetId;
 
             // 废除 sendData：改为直接调用 Supabase API
-            const userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null;
+            // 逻辑加固：在执行 supabaseClient.from('targets').insert 之前，再次通过 tg.initDataUnsafe.user.id 获取 ID
+            let userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null;
+            
+            // 备用检查：如果 tg.initDataUnsafe.user.id 没拿到，尝试从 URL 参数中解析 userId
+            if (!userId) {
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const userIdFromUrl = urlParams.get('userId');
+                    if (userIdFromUrl) {
+                        userId = parseInt(userIdFromUrl, 10);
+                        console.log('✓ 从 URL 参数获取到 User ID:', userId);
+                    }
+                } catch (error) {
+                    console.error('从 URL 参数解析 User ID 失败:', error);
+                }
+            }
+            
             if (!userId) {
                 showToast(t('miniapp_target_creation_failed'), 'error');
                 console.error('无法获取用户 ID');
