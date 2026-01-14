@@ -2861,16 +2861,9 @@
         // 取消创建档案
         document.getElementById('cancelTargetCreation').addEventListener('click', () => {
             hapticFeedback.impact('light');
+            // 只需隐藏弹窗即可，不要发送任何数据给 Bot
             hideTargetCreationModal();
             showToast(t('target_creation_cancelled'), 'info');
-
-            // 发送取消消息到Bot
-            if (tg && tg.sendData) {
-                tg.sendData(JSON.stringify({
-                    action: 'cancel_target_creation',
-                    timestamp: Date.now()
-                }));
-            }
         });
 
         // 确认创建/编辑档案
