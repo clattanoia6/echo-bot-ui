@@ -2735,9 +2735,10 @@
             
             try {
                 // 从 Supabase 实时获取档案
+                // 修正卡片渲染逻辑：确保读取字段名完全匹配（relationship 和 stage）
                 const { data, error } = await supabaseClient
                     .from('targets')
-                    .select('target_id, alias, icon, defense_value, summary, traits')
+                    .select('target_id, alias, icon, defense_value, summary, traits, relationship, stage')
                     .eq('user_id', userId)
                     .order('updated_at', { ascending: false })
                     .order('created_at', { ascending: false })
@@ -2891,6 +2892,32 @@
             document.getElementById('targetNameError').classList.add('hidden');
             document.getElementById('targetIconError').classList.add('hidden');
             
+            // 强制初始化默认值：如果是创建新档案（非编辑模式），必须显式设置
+            // 确保与 UI 默认高亮的按钮一致
+            config.relationship = 'lover';  // 对应'情侣'
+            config.stage = 'ambiguous';     // 对应'暧昧'
+            
+            // UI 同步：确保对应的按钮（data-value="lover" 和 data-value="ambiguous"）被加上 active 类名
+            // 重置所有关系类型按钮的 active 状态
+            document.querySelectorAll('[data-type="relationship"]').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // 设置默认关系类型按钮为 active
+            const defaultRelBtn = document.querySelector('[data-type="relationship"][data-value="lover"]');
+            if (defaultRelBtn) {
+                defaultRelBtn.classList.add('active');
+            }
+            
+            // 重置所有阶段按钮的 active 状态
+            document.querySelectorAll('[data-type="stage"]').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // 设置默认阶段按钮为 active
+            const defaultStageBtn = document.querySelector('[data-type="stage"][data-value="ambiguous"]');
+            if (defaultStageBtn) {
+                defaultStageBtn.classList.add('active');
+            }
+            
             // 恢复按钮文本
             confirmBtn.textContent = t('miniapp_target_creation_confirm') || 'Confirm Create';
             confirmBtn.setAttribute('data-i18n', 'miniapp_target_creation_confirm');
@@ -2965,6 +2992,36 @@
                 return;
             }
 
+            // 强化字段捕获：如果 selectedRelationship 或 selectedStage 为空，尝试从页面上带有 .active 类名的按钮中重新抓取一次 dataset.value
+            let relationshipValue = config.relationship;
+            let stageValue = config.stage;
+            
+            if (!relationshipValue || relationshipValue === null || relationshipValue === undefined) {
+                const activeRelBtn = document.querySelector('[data-type="relationship"].active');
+                if (activeRelBtn && activeRelBtn.dataset.value) {
+                    relationshipValue = activeRelBtn.dataset.value;
+                    console.log('✓ 从按钮重新抓取 relationship:', relationshipValue);
+                }
+            }
+            
+            if (!stageValue || stageValue === null || stageValue === undefined) {
+                const activeStageBtn = document.querySelector('[data-type="stage"].active');
+                if (activeStageBtn && activeStageBtn.dataset.value) {
+                    stageValue = activeStageBtn.dataset.value;
+                    console.log('✓ 从按钮重新抓取 stage:', stageValue);
+                }
+            }
+            
+            // 如果仍然为空，使用默认值
+            if (!relationshipValue) {
+                relationshipValue = 'lover';
+                console.warn('⚠️ relationship 为空，使用默认值: lover');
+            }
+            if (!stageValue) {
+                stageValue = 'ambiguous';
+                console.warn('⚠️ stage 为空，使用默认值: ambiguous');
+            }
+
             // 准备数据（但不立即发送）
             let data;
             if (isEditMode) {
@@ -2984,8 +3041,8 @@
                     alias: targetName,
                     icon: targetIcon,
                     summary: targetSummary,
-                    relationship: config.relationship,
-                    stage: config.stage,
+                    relationship: relationshipValue,
+                    stage: stageValue,
                     timestamp: Date.now()
                 });
             }
@@ -3060,8 +3117,8 @@
                             summary: targetSummary,
                             defense_value: 0,
                             traits: '[]',
-                            relationship: config.relationship || '',
-                            stage: config.stage || '',
+                            relationship: relationshipValue || '',
+                            stage: stageValue || '',
                             created_at: new Date().toISOString(),
                             updated_at: new Date().toISOString()
                         })
