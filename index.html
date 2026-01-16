@@ -3058,14 +3058,33 @@
 
         document.getElementById('deleteConfirmOk').addEventListener('click', async () => {
             hapticFeedback.impact('medium');
+            // 强化删除条件：确保 targetId 已正确从 data-target-id 属性中取出
             const targetId = document.getElementById('deleteConfirmModal').getAttribute('data-target-id');
             
             if (!targetId) {
                 showToast(t('target_delete_failed'), 'error');
+                console.error('无法获取 target_id');
                 return;
             }
             
-            const userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null;
+            // 补全 ID 获取双保险：与 confirmTargetCreation 完全一致的逻辑
+            // 第一步：尝试从 tg.initDataUnsafe.user.id 获取
+            let userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null;
+            
+            // 第二步：如果失败，尝试从 URL 参数 userId 中获取并转为整数
+            if (!userId) {
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const userIdFromUrl = urlParams.get('userId');
+                    if (userIdFromUrl) {
+                        userId = parseInt(userIdFromUrl, 10);
+                        console.log('✓ 从 URL 参数获取到 User ID:', userId);
+                    }
+                } catch (error) {
+                    console.error('从 URL 参数解析 User ID 失败:', error);
+                }
+            }
+            
             if (!userId) {
                 showToast(t('target_delete_failed'), 'error');
                 console.error('无法获取用户 ID');
