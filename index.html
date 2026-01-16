@@ -1129,6 +1129,15 @@
             animation: signalPulse 1.5s ease-in-out infinite;
         }
 
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         @keyframes signalPulse {
             0%, 100% {
                 opacity: 1;
@@ -2590,6 +2599,17 @@
         function renderTargetList(targets) {
             const targetList = document.getElementById('targetList');
             
+            // 优化空状态显示：当 targets 还在抓取时（null 或 undefined），显示加载旋转图标
+            if (targets === null || targets === undefined) {
+                targetList.innerHTML = `
+                    <div class="empty-archives">
+                        <div class="empty-archives-icon" style="animation: spin 1s linear infinite;">⏳</div>
+                        <div class="empty-archives-text">加载中...</div>
+                    </div>
+                `;
+                return;
+            }
+            
             // 保存到全局变量，供 createTargetCard 中的事件监听器使用
             window.currentTargets = targets;
 
@@ -2750,7 +2770,12 @@
                 // 确保 Telegram 环境完全就绪后再尝试获取 userId
                 loadTargetsFromSupabase().then(targets => {
                     window.currentTargets = targets || [];
+                    // 修复首屏静默加载：确保 tg.ready 触发后显式调用 renderTargetList
                     renderTargetList(window.currentTargets);
+                    // 如果当前页面是档案页面，再次显式调用确保显示
+                    if (document.getElementById('page-folder') && document.getElementById('page-folder').classList.contains('active')) {
+                        renderTargetList(window.currentTargets);
+                    }
                 });
             });
         } else {
@@ -2760,12 +2785,20 @@
                     loadTargetsFromSupabase().then(targets => {
                         window.currentTargets = targets || [];
                         renderTargetList(window.currentTargets);
+                        // 如果当前页面是档案页面，再次显式调用确保显示
+                        if (document.getElementById('page-folder') && document.getElementById('page-folder').classList.contains('active')) {
+                            renderTargetList(window.currentTargets);
+                        }
                     });
                 });
             } else {
                 loadTargetsFromSupabase().then(targets => {
                     window.currentTargets = targets || [];
                     renderTargetList(window.currentTargets);
+                    // 如果当前页面是档案页面，再次显式调用确保显示
+                    if (document.getElementById('page-folder') && document.getElementById('page-folder').classList.contains('active')) {
+                        renderTargetList(window.currentTargets);
+                    }
                 });
             }
         }
@@ -2781,21 +2814,45 @@
 
         // 页面切换时，如果是档案页面，加载目标列表
         navItems.forEach(item => {
-            item.addEventListener('click', () => {
+            item.addEventListener('click', async () => {
                 const targetPage = item.dataset.page;
                 if (targetPage === 'folder') {
-                    // 切换到档案页面时，加载目标列表
-                    // 使用统一数据源 window.currentTargets
-                    setTimeout(() => {
+                    // 强化导航加载逻辑：切换到档案页面时，必须重新执行 loadTargetsFromSupabase()
+                    // 先显示加载中状态
+                    const targetList = document.getElementById('targetList');
+                    if (targetList) {
+                        targetList.innerHTML = `
+                            <div class="empty-archives">
+                                <div class="empty-archives-icon" style="animation: spin 1s linear infinite;">⏳</div>
+                                <div class="empty-archives-text">加载中...</div>
+                            </div>
+                        `;
+                    }
+                    
+                    // 执行云端抓取
+                    try {
+                        const targets = await loadTargetsFromSupabase();
+                        // 更新全局变量
+                        window.currentTargets = targets || [];
+                        // 最后调用 renderTargetList 渲染 UI
                         renderTargetList(window.currentTargets);
-                    }, 300);
+                    } catch (error) {
+                        console.error('加载档案列表失败:', error);
+                        renderTargetList([]);
+                    }
                 }
             });
         });
 
         // 初始化：如果当前是档案页面，加载数据
-        if (document.getElementById('page-folder').classList.contains('active')) {
-            renderTargetList(window.currentTargets);
+        // 注意：这里只是初始化，实际数据加载在 tg.ready 回调中完成
+        if (document.getElementById('page-folder') && document.getElementById('page-folder').classList.contains('active')) {
+            // 如果数据还未加载，显示加载状态
+            if (!window.currentTargets || window.currentTargets.length === 0) {
+                renderTargetList(null); // 传入 null 显示加载图标
+            } else {
+                renderTargetList(window.currentTargets);
+            }
         }
 
         // DOM 加载完成后初始化 i18n
