@@ -2289,6 +2289,18 @@
                 customInputModalConfirm.click();
             }
         });
+        
+        // 监听自定义输入：当用户打字时，实时更新对应的 selectedRelationship 或 selectedStage 变量
+        customInputModalInput.addEventListener('input', (e) => {
+            if (currentCustomType && currentCustomButton) {
+                const value = e.target.value.trim();
+                // 实时更新配置（但不在按钮上显示，等确认后再显示）
+                if (value) {
+                    config[currentCustomType] = `custom:${value}`;
+                    console.log(`✓ 实时更新 ${currentCustomType}:`, config[currentCustomType]);
+                }
+            }
+        });
 
         // 处理分段选择器点击
         segmentOptions.forEach(option => {
@@ -2478,19 +2490,31 @@
                 '收割': 'stage_harvest'
             };
 
-            const relationshipKey = relationshipMap[target.relationship] || null;
-            const stageKey = stageMap[target.stage] || null;
-
-            // 处理自定义关系类型和阶段（如果包含 custom: 前缀）
-            let relationshipText = relationshipKey ? t(relationshipKey) : (target.relationship || t('unclassified'));
-            let stageText = stageKey ? t(stageKey) : (target.stage || t('not_set'));
-
-            // 如果关系类型或阶段包含 custom: 前缀，提取自定义值
+            // 档案卡片渲染：确保直接显示从数据库读取到的 target.relationship 和 target.stage
+            // 如果这两个字段有值，就显示原值，不要进行任何硬编码的替换
+            let relationshipText = '';
+            let stageText = '';
+            
+            // 如果关系类型或阶段包含 custom: 前缀，直接提取自定义值显示
             if (target.relationship && target.relationship.startsWith('custom:')) {
                 relationshipText = target.relationship.replace('custom:', '');
+            } else if (target.relationship) {
+                // 预设值：尝试映射翻译，如果映射不到就直接显示原值
+                const relationshipKey = relationshipMap[target.relationship] || null;
+                relationshipText = relationshipKey ? t(relationshipKey) : target.relationship;
+            } else {
+                relationshipText = t('unclassified');
             }
+            
+            // 阶段同理
             if (target.stage && target.stage.startsWith('custom:')) {
                 stageText = target.stage.replace('custom:', '');
+            } else if (target.stage) {
+                // 预设值：尝试映射翻译，如果映射不到就直接显示原值
+                const stageKey = stageMap[target.stage] || null;
+                stageText = stageKey ? t(stageKey) : target.stage;
+            } else {
+                stageText = t('not_set');
             }
 
             // 图标默认值：优先使用 target.icon，如果没有则使用 👤 或 🎯
@@ -2892,30 +2916,38 @@
             document.getElementById('targetNameError').classList.add('hidden');
             document.getElementById('targetIconError').classList.add('hidden');
             
-            // 强制初始化默认值：如果是创建新档案（非编辑模式），必须显式设置
-            // 确保与 UI 默认高亮的按钮一致
-            config.relationship = 'lover';  // 对应'情侣'
-            config.stage = 'ambiguous';     // 对应'暧昧'
+            // 修复初始化 Bug：如果是新建档案，默认将 selectedRelationship 设为'情侣'，selectedStage 设为'暧昧'
+            // 但严禁在用户点击其他按钮后又将其重置回默认值
+            // 检查是否已有 active 按钮，如果没有才设置默认值
+            const existingActiveRel = document.querySelector('[data-type="relationship"].active');
+            const existingActiveStage = document.querySelector('[data-type="stage"].active');
             
-            // UI 同步：确保对应的按钮（data-value="lover" 和 data-value="ambiguous"）被加上 active 类名
-            // 重置所有关系类型按钮的 active 状态
-            document.querySelectorAll('[data-type="relationship"]').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            // 设置默认关系类型按钮为 active
-            const defaultRelBtn = document.querySelector('[data-type="relationship"][data-value="lover"]');
-            if (defaultRelBtn) {
-                defaultRelBtn.classList.add('active');
+            if (!existingActiveRel) {
+                // 只有在没有 active 按钮时才设置默认值
+                config.relationship = 'lover';  // 对应'情侣'
+                // 重置所有关系类型按钮的 active 状态
+                document.querySelectorAll('[data-type="relationship"]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                // 设置默认关系类型按钮为 active
+                const defaultRelBtn = document.querySelector('[data-type="relationship"][data-value="lover"]');
+                if (defaultRelBtn) {
+                    defaultRelBtn.classList.add('active');
+                }
             }
             
-            // 重置所有阶段按钮的 active 状态
-            document.querySelectorAll('[data-type="stage"]').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            // 设置默认阶段按钮为 active
-            const defaultStageBtn = document.querySelector('[data-type="stage"][data-value="ambiguous"]');
-            if (defaultStageBtn) {
-                defaultStageBtn.classList.add('active');
+            if (!existingActiveStage) {
+                // 只有在没有 active 按钮时才设置默认值
+                config.stage = 'ambiguous';     // 对应'暧昧'
+                // 重置所有阶段按钮的 active 状态
+                document.querySelectorAll('[data-type="stage"]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                // 设置默认阶段按钮为 active
+                const defaultStageBtn = document.querySelector('[data-type="stage"][data-value="ambiguous"]');
+                if (defaultStageBtn) {
+                    defaultStageBtn.classList.add('active');
+                }
             }
             
             // 恢复按钮文本
@@ -2992,34 +3024,47 @@
                 return;
             }
 
-            // 强化字段捕获：如果 selectedRelationship 或 selectedStage 为空，尝试从页面上带有 .active 类名的按钮中重新抓取一次 dataset.value
-            let relationshipValue = config.relationship;
-            let stageValue = config.stage;
-            
-            if (!relationshipValue || relationshipValue === null || relationshipValue === undefined) {
-                const activeRelBtn = document.querySelector('[data-type="relationship"].active');
-                if (activeRelBtn && activeRelBtn.dataset.value) {
+            // 重构值获取逻辑：在执行 Supabase insert/update 之前，动态抓取关系类型和阶段的值
+            // 关系类型获取：检查关系区域。如果有普通按钮处于 active 状态，取其 data-value；如果"自定义"按钮处于 active 状态，则必须取按钮的 textContent（因为自定义值会更新按钮文字）
+            let relationshipValue = null;
+            const activeRelBtn = document.querySelector('[data-type="relationship"].active');
+            if (activeRelBtn) {
+                if (activeRelBtn.dataset.value === 'custom') {
+                    // 自定义按钮：从按钮的 textContent 获取值（用户输入的自定义值会更新按钮文字）
+                    const customValue = activeRelBtn.textContent.trim();
+                    relationshipValue = customValue ? `custom:${customValue}` : null;
+                    console.log('✓ 从自定义按钮获取 relationship:', relationshipValue);
+                } else {
+                    // 普通按钮：取 data-value
                     relationshipValue = activeRelBtn.dataset.value;
-                    console.log('✓ 从按钮重新抓取 relationship:', relationshipValue);
+                    console.log('✓ 从普通按钮获取 relationship:', relationshipValue);
                 }
             }
             
-            if (!stageValue || stageValue === null || stageValue === undefined) {
-                const activeStageBtn = document.querySelector('[data-type="stage"].active');
-                if (activeStageBtn && activeStageBtn.dataset.value) {
+            // 博弈阶段获取：同理，检查阶段区域。优先取 active 按钮的 data-value，若是自定义，则取按钮的 textContent
+            let stageValue = null;
+            const activeStageBtn = document.querySelector('[data-type="stage"].active');
+            if (activeStageBtn) {
+                if (activeStageBtn.dataset.value === 'custom') {
+                    // 自定义按钮：从按钮的 textContent 获取值
+                    const customValue = activeStageBtn.textContent.trim();
+                    stageValue = customValue ? `custom:${customValue}` : null;
+                    console.log('✓ 从自定义按钮获取 stage:', stageValue);
+                } else {
+                    // 普通按钮：取 data-value
                     stageValue = activeStageBtn.dataset.value;
-                    console.log('✓ 从按钮重新抓取 stage:', stageValue);
+                    console.log('✓ 从普通按钮获取 stage:', stageValue);
                 }
             }
             
-            // 如果仍然为空，使用默认值
+            // 如果仍然为空，尝试从 config 获取（作为备用）
             if (!relationshipValue) {
-                relationshipValue = 'lover';
-                console.warn('⚠️ relationship 为空，使用默认值: lover');
+                relationshipValue = config.relationship || 'lover';
+                console.warn('⚠️ relationship 为空，使用 config 或默认值:', relationshipValue);
             }
             if (!stageValue) {
-                stageValue = 'ambiguous';
-                console.warn('⚠️ stage 为空，使用默认值: ambiguous');
+                stageValue = config.stage || 'ambiguous';
+                console.warn('⚠️ stage 为空，使用 config 或默认值:', stageValue);
             }
 
             // 准备数据（但不立即发送）
