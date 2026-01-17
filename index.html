@@ -1624,7 +1624,6 @@
                 "upload_hint_desc": "档案已就绪！现在请返回 Bot 发送截图或转发聊天记录，我将为你开始深度分析。",
                 "btn_stay_here": "留在档案页",
                 "btn_back_to_bot": "返回 Bot",
-                "target_name_exists": "❌ 该档案名称已存在，请换一个名字",
                 "btn_edit": "编辑",
                 "btn_delete": "删除",
                 "btn_save": "保存",
@@ -1728,7 +1727,6 @@
                 "upload_hint_desc": "Archive is ready! Now please return to Bot and send a screenshot or forward chat history, and I will start deep analysis for you.",
                 "btn_stay_here": "Stay Here",
                 "btn_back_to_bot": "Back to Bot",
-                "target_name_exists": "❌ This name already exists.",
                 "btn_edit": "Edit",
                 "btn_delete": "Delete",
                 "btn_save": "Save",
@@ -3221,41 +3219,7 @@
                 return;
             }
             
-            // 增加创建重名校验：在执行 Supabase insert 之前，先执行一次查询
-            try {
-                const { data: existingTargets, error: checkError } = await supabaseClient
-                    .from('targets')
-                    .select('target_id, alias')
-                    .eq('user_id', userId)
-                    .eq('alias', targetName);
-                
-                if (checkError) {
-                    console.error('检查重名失败:', checkError);
-                } else if (existingTargets && existingTargets.length > 0) {
-                    // 统一 ID 比较类型：确保在比较 existing.target_id 和 editingTargetId 时，统一转换为字符串
-                    const editingTargetId = isEditMode ? targetId : null;
-                    const hasConflict = existingTargets.some(existing => {
-                        // 如果是编辑模式，排除当前编辑的档案
-                        if (isEditMode && editingTargetId) {
-                            return String(existing.target_id) !== String(editingTargetId);
-                        }
-                        // 如果是创建模式，任何重名都是冲突
-                        return true;
-                    });
-                    
-                    if (hasConflict) {
-                        // 拦截提示：如果查询结果不为空且当前不是'编辑模式'，则弹出红色 Toast 提示并中断保存
-                        showToast(t('target_name_exists'), 'error');
-                        // 修复按钮复原逻辑：在 if (existing && ...) 逻辑块中，调用 showToast 之后，必须加上以下两行代码再执行 return
-                        confirmBtn.disabled = false;
-                        confirmBtn.innerText = originalText;
-                        return;
-                    }
-                }
-            } catch (checkError) {
-                console.error('检查重名时出错:', checkError);
-            }
-            
+            // 保持流程顺畅：直接进入 if (isEditMode) 判断，不再进行重名校验
             try {
                 if (isEditMode) {
                     // 编辑模式：直接调用 Supabase API 更新
