@@ -1404,6 +1404,21 @@
         </div>
     </div>
 
+    <!-- 上传引导弹窗 -->
+    <div id="upload-hint-modal" class="modal-overlay hidden">
+        <div class="modal-content glass">
+            <div class="text-center mb-6">
+                <div class="text-6xl mb-4" style="animation: pulse 2s ease-in-out infinite;">📤</div>
+                <h3 class="mono text-xl font-semibold mb-4 text-cyan-400" data-i18n="modal_title_success">✅ 档案创建成功</h3>
+                <p class="text-sm text-gray-300 leading-relaxed" data-i18n="upload_hint_desc">档案已就绪！现在请返回 Bot 发送截图或转发聊天记录，我将为你开始深度分析。</p>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button id="btn-stay-here" class="btn-secondary" data-i18n="btn_stay_here">留在档案页</button>
+                <button id="btn-back-to-bot" class="btn-primary" data-i18n="btn_back_to_bot">返回 Bot</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 删除确认弹窗 -->
     <div id="deleteConfirmModal" class="modal-overlay hidden">
         <div class="modal-content glass">
@@ -1574,6 +1589,10 @@
                 "guide_modal_title": "✅ 档案已就绪",
                 "guide_modal_desc": "档案已就绪，请返回 Bot 发送对话截图、聊天记录或详细文字叙述以启动灵魂拆解。",
                 "guide_modal_confirm": "我知道了",
+                "modal_title_success": "✅ 档案创建成功",
+                "upload_hint_desc": "档案已就绪！现在请返回 Bot 发送截图或转发聊天记录，我将为你开始深度分析。",
+                "btn_stay_here": "留在档案页",
+                "btn_back_to_bot": "返回 Bot",
                 "btn_edit": "编辑",
                 "btn_delete": "删除",
                 "btn_save": "保存",
@@ -1673,6 +1692,10 @@
                 "guide_modal_title": "✅ Archive Ready",
                 "guide_modal_desc": "Archive is ready. Please return to Bot and send a conversation screenshot, chat history, or detailed text description to start soul dissection.",
                 "guide_modal_confirm": "I Understand",
+                "modal_title_success": "✅ Archive Created Successfully",
+                "upload_hint_desc": "Archive is ready! Now please return to Bot and send a screenshot or forward chat history, and I will start deep analysis for you.",
+                "btn_stay_here": "Stay Here",
+                "btn_back_to_bot": "Back to Bot",
                 "btn_edit": "Edit",
                 "btn_delete": "Delete",
                 "btn_save": "Save",
@@ -2691,6 +2714,24 @@
             }
         }
 
+        // 显示上传引导弹窗
+        function showUploadHintModal() {
+            const modal = document.getElementById('upload-hint-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                // 更新多语言文本
+                updateI18n();
+            }
+        }
+
+        // 隐藏上传引导弹窗
+        function hideUploadHintModal() {
+            const modal = document.getElementById('upload-hint-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
         // 显示编辑目标弹窗（复用 targetCreationModal）
         function showEditTargetModal(targetData) {
             const modal = document.getElementById('targetCreationModal');
@@ -3181,6 +3222,9 @@
                     
                     showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
                     hideTargetCreationModal();
+                    
+                    // 触发逻辑修改：在 Supabase insert 成功且执行完 loadTargetsFromSupabase() 刷新列表后，显示上传引导弹窗
+                    showUploadHintModal();
                 }
             } catch (error) {
                 console.error('Supabase 操作失败:', error);
@@ -3192,6 +3236,27 @@
         document.getElementById('targetIconSelector').addEventListener('click', () => {
             hapticFeedback.impact('light');
             showEmojiPicker();
+        });
+
+        // 上传引导弹窗按钮事件
+        document.getElementById('btn-stay-here').addEventListener('click', () => {
+            hapticFeedback.impact('light');
+            // 按钮一：留在档案页。点击后仅隐藏弹窗，让用户继续查看档案
+            hideUploadHintModal();
+        });
+
+        document.getElementById('btn-back-to-bot').addEventListener('click', () => {
+            hapticFeedback.impact('medium');
+            // 按钮二：返回 Bot。点击后调用 tg.close() 直接关闭小程序，方便用户立即上传
+            if (tg && tg.close) {
+                tg.close();
+            } else if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.close) {
+                window.Telegram.WebApp.close();
+            } else {
+                // 非 Telegram 环境，仅隐藏弹窗
+                hideUploadHintModal();
+                console.warn('Telegram WebApp 不可用，无法关闭小程序');
+            }
         });
 
         // 引导弹窗确认按钮事件（已废弃，因为现在直接调用 Supabase API，不需要引导弹窗）
