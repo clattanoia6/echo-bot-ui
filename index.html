@@ -16,7 +16,7 @@
 
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
+
     <!-- Supabase JS SDK -->
     <script src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js'></script>
 
@@ -490,37 +490,6 @@
         .target-card:hover {
             border-color: rgba(6, 182, 212, 0.3);
             box-shadow: 0 4px 12px rgba(6, 182, 212, 0.1);
-        }
-
-        /* 博弈阶段主题色：使用更细腻的半透明渐变 */
-        .target-card.card-ambiguous {
-            background: rgba(244, 114, 182, 0.08);
-            border: 1px solid rgba(244, 114, 182, 0.3);
-        }
-
-        .target-card.card-ambiguous:hover {
-            border-color: rgba(244, 114, 182, 0.5);
-            box-shadow: 0 4px 12px rgba(244, 114, 182, 0.15);
-        }
-
-        .target-card.card-cold {
-            background: rgba(96, 165, 250, 0.08);
-            border: 1px solid rgba(96, 165, 250, 0.3);
-        }
-
-        .target-card.card-cold:hover {
-            border-color: rgba(96, 165, 250, 0.5);
-            box-shadow: 0 4px 12px rgba(96, 165, 250, 0.15);
-        }
-
-        .target-card.card-harvest {
-            background: rgba(251, 191, 36, 0.08);
-            border: 1px solid rgba(251, 191, 36, 0.3);
-        }
-
-        .target-card.card-harvest:hover {
-            border-color: rgba(251, 191, 36, 0.5);
-            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.15);
         }
 
         /* 状态标签 */
@@ -2343,7 +2312,7 @@
                 customInputModalConfirm.click();
             }
         });
-        
+
         // 监听自定义输入：当用户打字时，实时更新对应的 selectedRelationship 或 selectedStage 变量
         customInputModalInput.addEventListener('input', (e) => {
             if (currentCustomType && currentCustomButton) {
@@ -2514,26 +2483,6 @@
         function createTargetCard(target) {
             const card = document.createElement('div');
             card.className = 'target-card';
-            
-            // 动态应用卡片样式：根据 target.stage 的值，为生成的 .target-card 元素动态添加对应的类名
-            let stageClass = '';
-            let avatarGradient = 'linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(8, 145, 178, 0.15))'; // 默认渐变色
-            
-            // 判断阶段：包含 ambiguous 或 暧昧 则加 .card-ambiguous
-            if (target.stage && (target.stage.includes('ambiguous') || target.stage.includes('暧昧'))) {
-                stageClass = 'card-ambiguous';
-                avatarGradient = 'linear-gradient(135deg, rgba(244, 114, 182, 0.25), rgba(236, 72, 153, 0.2))'; // 粉色渐变
-            } else if (target.stage && (target.stage.includes('cold') || target.stage.includes('冷战'))) {
-                stageClass = 'card-cold';
-                avatarGradient = 'linear-gradient(135deg, rgba(96, 165, 250, 0.25), rgba(59, 130, 246, 0.2))'; // 冷蓝渐变
-            } else if (target.stage && (target.stage.includes('harvest') || target.stage.includes('收割'))) {
-                stageClass = 'card-harvest';
-                avatarGradient = 'linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(245, 158, 11, 0.2))'; // 金黄渐变
-            }
-            
-            if (stageClass) {
-                card.className += ' ' + stageClass;
-            }
 
             // 状态标签
             const statusClass = target.status === 'live' ? 'status-live' : 'status-archived';
@@ -2568,7 +2517,7 @@
             // 如果这两个字段有值，就显示原值，不要进行任何硬编码的替换
             let relationshipText = '';
             let stageText = '';
-            
+
             // 如果关系类型或阶段包含 custom: 前缀，直接提取自定义值显示
             if (target.relationship && target.relationship.startsWith('custom:')) {
                 relationshipText = target.relationship.replace('custom:', '');
@@ -2579,7 +2528,7 @@
             } else {
                 relationshipText = t('unclassified');
             }
-            
+
             // 阶段同理
             if (target.stage && target.stage.startsWith('custom:')) {
                 stageText = target.stage.replace('custom:', '');
@@ -2626,7 +2575,7 @@
                     <button class="target-card-action-btn delete" data-target-id="${target.id || target.target_id}" data-action="delete" title="${t('btn_delete')}">🗑️</button>
                 </div>
                 <div class="target-card-header">
-                    <div class="target-avatar" style="background: ${avatarGradient};">${targetIcon}</div>
+                    <div class="target-avatar">${targetIcon}</div>
                     <div class="target-info">
                         <div class="target-name">${target.name || target.alias || t('unknown_target')}</div>
                         <div class="target-meta">${relationshipText} · ${stageText}</div>
@@ -2696,7 +2645,7 @@
         // 渲染目标列表
         function renderTargetList(targets) {
             const targetList = document.getElementById('targetList');
-            
+
             // 优化空状态显示：当 targets 还在抓取时（null 或 undefined），显示加载旋转图标
             if (targets === null || targets === undefined) {
                 targetList.innerHTML = `
@@ -2707,7 +2656,7 @@
                 `;
                 return;
             }
-            
+
             // 保存到全局变量，供 createTargetCard 中的事件监听器使用
             window.currentTargets = targets;
 
@@ -2790,28 +2739,28 @@
             const selectedIcon = document.getElementById('selectedIcon');
             const summaryInput = document.getElementById('targetSummaryInput');
             const confirmBtn = document.getElementById('confirmTargetCreation');
-            
+
             // 设置编辑模式
             modal.setAttribute('data-edit-mode', 'true');
             modal.setAttribute('data-target-id', targetData.id || targetData.target_id);
-            
+
             // 填充现有数据
             nameInput.value = targetData.alias || targetData.name || '';
             currentSelectedIcon = targetData.icon || '🎯';
             selectedIcon.textContent = currentSelectedIcon;
             summaryInput.value = targetData.summary || '';
-            
+
             // 更新按钮文本
             confirmBtn.textContent = t('btn_save') || 'Save';
             confirmBtn.setAttribute('data-i18n', 'btn_save');
-            
+
             // 清除错误提示
             document.getElementById('targetNameError').classList.add('hidden');
             document.getElementById('targetIconError').classList.add('hidden');
-            
+
             // 显示弹窗
             modal.classList.remove('hidden');
-            
+
             // 隐藏主按钮
             if (tg && tg.MainButton) {
                 tg.MainButton.hide();
@@ -2824,12 +2773,12 @@
         const SUPABASE_URL = 'https://diykesubijqqiuhfibfy.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_WW6Jw4kC-PciumLKOywFJg_pH3ZbqaK';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
+
         // 双源自愈：加载页面时，优先从 Supabase 实时获取该用户的档案
         async function loadTargetsFromSupabase() {
             // 强制 User ID 校验：必须在开头检查
             let userId = tg?.initDataUnsafe?.user?.id;
-            
+
             // 备用检查：如果 tg.initDataUnsafe.user.id 没拿到，尝试从 URL 参数中解析 userId
             if (!userId) {
                 try {
@@ -2843,12 +2792,12 @@
                     console.error('从 URL 参数解析 User ID 失败:', error);
                 }
             }
-            
+
             if (!userId) {
                 console.warn('⚠️ 无法获取用户 ID，跳过数据加载');
                 return [];
             }
-            
+
             try {
                 // 从 Supabase 实时获取档案
                 // 修正卡片渲染逻辑：确保读取字段名完全匹配（relationship 和 stage）
@@ -2859,12 +2808,12 @@
                     .order('updated_at', { ascending: false })
                     .order('created_at', { ascending: false })
                     .limit(100);
-                
+
                 if (error) {
                     console.error('从 Supabase 加载档案失败:', error);
                     return [];
                 }
-                
+
                 if (data && data.length > 0) {
                     console.log('✓ 从 Supabase 实时加载档案数据:', data.length, '个档案');
                     return data;
@@ -2877,11 +2826,11 @@
                 return [];
             }
         }
-        
+
         // 初始化 window.currentTargets：优先从 Supabase 实时获取
         // 延迟数据加载：必须封装在 tg.ready() 回调中，确保 Telegram 环境完全就绪
         window.currentTargets = [];
-        
+
         if (tg) {
             tg.ready(() => {
                 // 确保 Telegram 环境完全就绪后再尝试获取 userId
@@ -2945,7 +2894,7 @@
                             </div>
                         `;
                     }
-                    
+
                     // 执行云端抓取
                     try {
                         const targets = await loadTargetsFromSupabase();
@@ -2975,7 +2924,7 @@
         // DOM 加载完成后初始化 i18n
         // 清理冲突逻辑：彻底删除 initUI 函数，该函数根据 user.language_code 强制覆盖标题和按钮，干扰了 Bot 传递的 lang 参数
         // 移除 DOM 监听器：删除文件末尾调用 initUI 的 document.addEventListener('DOMContentLoaded', initUI);
-        
+
         // 强化 i18n 引擎：确保页面加载时只调用 initI18n()
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() {
@@ -3007,13 +2956,13 @@
             summaryInput.value = '';
             document.getElementById('targetNameError').classList.add('hidden');
             document.getElementById('targetIconError').classList.add('hidden');
-            
+
             // 修复初始化 Bug：如果是新建档案，默认将 selectedRelationship 设为'情侣'，selectedStage 设为'暧昧'
             // 但严禁在用户点击其他按钮后又将其重置回默认值
             // 检查是否已有 active 按钮，如果没有才设置默认值
             const existingActiveRel = document.querySelector('[data-type="relationship"].active');
             const existingActiveStage = document.querySelector('[data-type="stage"].active');
-            
+
             if (!existingActiveRel) {
                 // 只有在没有 active 按钮时才设置默认值
                 config.relationship = 'lover';  // 对应'情侣'
@@ -3027,7 +2976,7 @@
                     defaultRelBtn.classList.add('active');
                 }
             }
-            
+
             if (!existingActiveStage) {
                 // 只有在没有 active 按钮时才设置默认值
                 config.stage = 'ambiguous';     // 对应'暧昧'
@@ -3041,7 +2990,7 @@
                     defaultStageBtn.classList.add('active');
                 }
             }
-            
+
             // 恢复按钮文本
             confirmBtn.textContent = t('miniapp_target_creation_confirm') || 'Confirm Create';
             confirmBtn.setAttribute('data-i18n', 'miniapp_target_creation_confirm');
@@ -3077,9 +3026,6 @@
         // 确认创建/编辑档案
         document.getElementById('confirmTargetCreation').addEventListener('click', async () => {
             hapticFeedback.impact('medium');
-            const confirmBtn = document.getElementById('confirmTargetCreation');
-            const originalText = confirmBtn.textContent || confirmBtn.innerText;
-            
             const modal = document.getElementById('targetCreationModal');
             const isEditMode = modal.getAttribute('data-edit-mode') === 'true';
             const targetId = modal.getAttribute('data-target-id');
@@ -3089,7 +3035,7 @@
             // 安全获取 summary：使用可选链操作符
             const summary = document.getElementById('targetSummaryInput')?.value || '';
             const targetSummary = summary.trim();
-            
+
             // ID 校验：确保 target_id 正确对应正在编辑的档案 ID
             if (isEditMode && !targetId) {
                 showToast(t('target_update_failed'), 'error');
@@ -3135,7 +3081,7 @@
                     console.log('✓ 从普通按钮获取 relationship:', relationshipValue);
                 }
             }
-            
+
             // 博弈阶段获取：同理，检查阶段区域。优先取 active 按钮的 data-value，若是自定义，则取按钮的 textContent
             let stageValue = null;
             const activeStageBtn = document.querySelector('[data-type="stage"].active');
@@ -3151,7 +3097,7 @@
                     console.log('✓ 从普通按钮获取 stage:', stageValue);
                 }
             }
-            
+
             // 如果仍然为空，尝试从 config 获取（作为备用）
             if (!relationshipValue) {
                 relationshipValue = config.relationship || 'lover';
@@ -3198,7 +3144,7 @@
             // 废除 sendData：改为直接调用 Supabase API
             // 逻辑加固：在执行 supabaseClient.from('targets').insert 之前，再次通过 tg.initDataUnsafe.user.id 获取 ID
             let userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null;
-            
+
             // 备用检查：如果 tg.initDataUnsafe.user.id 没拿到，尝试从 URL 参数中解析 userId
             if (!userId) {
                 try {
@@ -3212,14 +3158,13 @@
                     console.error('从 URL 参数解析 User ID 失败:', error);
                 }
             }
-            
+
             if (!userId) {
                 showToast(t('miniapp_target_creation_failed'), 'error');
                 console.error('无法获取用户 ID');
                 return;
             }
-            
-            // 保持流程顺畅：直接进入 if (isEditMode) 判断，不再进行重名校验
+
             try {
                 if (isEditMode) {
                     // 编辑模式：直接调用 Supabase API 更新
@@ -3234,17 +3179,17 @@
                         .eq('target_id', targetId)
                         .eq('user_id', userId)
                         .select();
-                    
+
                     if (error) {
                         throw error;
                     }
-                    
+
                     // 实现'不关窗'同步：操作成功后只需执行 renderTargetList 刷新页面
                     await loadTargetsFromSupabase().then(targets => {
                         window.currentTargets = targets || [];
                         renderTargetList(window.currentTargets);
                     });
-                    
+
                     showToast(t('target_updated', { alias: targetName }), 'success');
                     hideTargetCreationModal();
                 } else {
@@ -3264,20 +3209,20 @@
                             updated_at: new Date().toISOString()
                         })
                         .select();
-                    
+
                     if (error) {
                         throw error;
                     }
-                    
+
                     // 实现'不关窗'同步：操作成功后只需执行 renderTargetList 刷新页面
                     await loadTargetsFromSupabase().then(targets => {
                         window.currentTargets = targets || [];
                         renderTargetList(window.currentTargets);
                     });
-                    
+
                     showToast(t('miniapp_target_created', { alias: targetName, icon: targetIcon }), 'success');
                     hideTargetCreationModal();
-                    
+
                     // 触发逻辑修改：在 Supabase insert 成功且执行完 loadTargetsFromSupabase() 刷新列表后，显示上传引导弹窗
                     showUploadHintModal();
                 }
@@ -3328,7 +3273,7 @@
 
         // 删除确认弹窗事件
         let pendingDeleteTargetId = null;
-        
+
         document.getElementById('deleteConfirmCancel').addEventListener('click', () => {
             hapticFeedback.impact('light');
             hideDeleteConfirmModal();
@@ -3339,17 +3284,17 @@
             hapticFeedback.impact('medium');
             // 强化删除条件：确保 targetId 已正确从 data-target-id 属性中取出
             const targetId = document.getElementById('deleteConfirmModal').getAttribute('data-target-id');
-            
+
             if (!targetId) {
                 showToast(t('target_delete_failed'), 'error');
                 console.error('无法获取 target_id');
                 return;
             }
-            
+
             // 补全 ID 获取双保险：与 confirmTargetCreation 完全一致的逻辑
             // 第一步：尝试从 tg.initDataUnsafe.user.id 获取
             let userId = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null;
-            
+
             // 第二步：如果失败，尝试从 URL 参数 userId 中获取并转为整数
             if (!userId) {
                 try {
@@ -3363,13 +3308,13 @@
                     console.error('从 URL 参数解析 User ID 失败:', error);
                 }
             }
-            
+
             if (!userId) {
                 showToast(t('target_delete_failed'), 'error');
                 console.error('无法获取用户 ID');
                 return;
             }
-            
+
             try {
                 // 必须确保：只有这一行删除操作
                 const { error } = await supabaseClient
@@ -3377,17 +3322,17 @@
                     .delete()
                     .eq('target_id', targetId)
                     .eq('user_id', userId);
-                
+
                 if (error) {
                     throw error;
                 }
-                
+
                 // 执行完后直接调用 renderTargetList
                 await loadTargetsFromSupabase().then(targets => {
                     window.currentTargets = targets || [];
                     renderTargetList(window.currentTargets);
                 });
-                
+
                 showToast(t('target_deleted'), 'success');
                 hideDeleteConfirmModal();
             } catch (error) {
