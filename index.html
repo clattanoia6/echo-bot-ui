@@ -1325,21 +1325,6 @@
                 </button>
             </div>
         </div>
-
-        <!-- 用户信息 -->
-        <div class="card glass">
-            <h2 class="mono text-xl font-semibold mb-4 text-cyan-400" data-i18n="page_title_user">👤 用户信息</h2>
-            <div class="space-y-2 text-sm">
-                <div class="flex justify-between">
-                    <span class="text-gray-400" data-i18n="label_user_id">用户ID</span>
-                    <span class="mono text-cyan-400" id="userId">-</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-400" data-i18n="label_register_time">注册时间</span>
-                    <span class="text-gray-300" id="registerTime">-</span>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- 底部导航栏 -->
@@ -1539,9 +1524,7 @@
                 "recharge_500": "500 Stars - 获得 60 次分析",
                 "recharge_1000": "1000 Stars - 获得 150 次分析",
                 "status_recharge": "💎 正在处理 {amount} Stars 充值请求...",
-                "page_title_user": "👤 用户信息",
-                "label_user_id": "用户ID",
-                "label_register_time": "注册时间",
+                "label_remaining_credits": "剩余分析次数",
                 "nav_target": "博弈",
                 "nav_folder": "档案",
                 "nav_user": "中心",
@@ -1642,9 +1625,7 @@
                 "recharge_500": "500 Stars - Get 60 analyses",
                 "recharge_1000": "1000 Stars - Get 150 analyses",
                 "status_recharge": "💎 Processing {amount} Stars recharge request...",
-                "page_title_user": "👤 User Info",
-                "label_user_id": "User ID",
-                "label_register_time": "Register Time",
+                "label_remaining_credits": "Remaining Analyses",
                 "nav_target": "Game",
                 "nav_folder": "Archives",
                 "nav_user": "Center",
@@ -1742,9 +1723,6 @@
                 "recharge_500": "500 Stars - Получить 60 анализов",
                 "recharge_1000": "1000 Stars - Получить 150 анализов",
                 "status_recharge": "💎 Обработка запроса на пополнение {amount} Stars...",
-                "page_title_user": "👤 Информация о пользователе",
-                "label_user_id": "ID пользователя",
-                "label_register_time": "Время регистрации",
                 "nav_target": "Игра",
                 "nav_folder": "Архивы",
                 "nav_user": "Центр",
@@ -1797,9 +1775,6 @@
                 "recharge_500": "500 Stars - 60回の分析を獲得",
                 "recharge_1000": "1000 Stars - 150回の分析を獲得",
                 "status_recharge": "💎 {amount} Stars充電リクエストを処理中...",
-                "page_title_user": "👤 ユーザー情報",
-                "label_user_id": "ユーザーID",
-                "label_register_time": "登録時間",
                 "nav_target": "ゲーム",
                 "nav_folder": "アーカイブ",
                 "nav_user": "センター",
@@ -1852,9 +1827,6 @@
                 "recharge_500": "500 Stars - 60 Analysen erhalten",
                 "recharge_1000": "1000 Stars - 150 Analysen erhalten",
                 "status_recharge": "💎 Verarbeite {amount} Stars Aufladungsanfrage...",
-                "page_title_user": "👤 Benutzerinformationen",
-                "label_user_id": "Benutzer-ID",
-                "label_register_time": "Registrierungszeit",
                 "nav_target": "Spiel",
                 "nav_folder": "Archive",
                 "nav_user": "Zentrum",
@@ -1907,9 +1879,6 @@
                 "recharge_500": "500 Stars - Obtenir 60 analyses",
                 "recharge_1000": "1000 Stars - Obtenir 150 analyses",
                 "status_recharge": "💎 Traitement de la demande de recharge de {amount} Stars...",
-                "page_title_user": "👤 Informations utilisateur",
-                "label_user_id": "ID utilisateur",
-                "label_register_time": "Heure d'inscription",
                 "nav_target": "Jeu",
                 "nav_folder": "Archives",
                 "nav_user": "Centre",
@@ -1962,9 +1931,6 @@
                 "recharge_500": "500 Stars - Obtener 60 análisis",
                 "recharge_1000": "1000 Stars - Obtener 150 análisis",
                 "status_recharge": "💎 Procesando solicitud de recarga de {amount} Stars...",
-                "page_title_user": "👤 Información del usuario",
-                "label_user_id": "ID de usuario",
-                "label_register_time": "Hora de registro",
                 "nav_target": "Juego",
                 "nav_folder": "Archivos",
                 "nav_user": "Centro",
@@ -2017,9 +1983,6 @@
                 "recharge_500": "500 Stars - 60회 분석 획득",
                 "recharge_1000": "1000 Stars - 150회 분석 획득",
                 "status_recharge": "💎 {amount} Stars 충전 요청 처리 중...",
-                "page_title_user": "👤 사용자 정보",
-                "label_user_id": "사용자 ID",
-                "label_register_time": "등록 시간",
                 "nav_target": "게임",
                 "nav_folder": "아카이브",
                 "nav_user": "센터",
@@ -2457,16 +2420,6 @@
             });
         });
 
-        // 初始化用户信息
-        if (initDataUnsafe.user) {
-            const user = initDataUnsafe.user;
-            document.getElementById('userId').textContent = user.id || '-';
-
-            // 模拟注册时间（实际应从服务器获取）
-            const registerTime = new Date().toLocaleDateString('zh-CN');
-            document.getElementById('registerTime').textContent = registerTime;
-        }
-
         // 监听来自 Bot 的消息（带安全检查）
         if (tg && tg.onEvent) {
             tg.onEvent('viewportChanged', () => {
@@ -2774,6 +2727,72 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_WW6Jw4kC-PciumLKOywFJg_pH3ZbqaK';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // 从 Supabase 加载用户 credits（剩余分析次数）并更新能量条
+        async function loadUserCredits() {
+            let userId = tg?.initDataUnsafe?.user?.id;
+            
+            // 备用检查：如果 tg.initDataUnsafe.user.id 没拿到，尝试从 URL 参数中解析 userId
+            if (!userId) {
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const userIdFromUrl = urlParams.get('userId');
+                    if (userIdFromUrl) {
+                        userId = parseInt(userIdFromUrl, 10);
+                        console.log('✓ 从 URL 参数获取到 User ID:', userId);
+                    }
+                } catch (error) {
+                    console.error('从 URL 参数解析 User ID 失败:', error);
+                }
+            }
+            
+            if (!userId) {
+                console.warn('⚠️ 无法获取用户 ID，跳过 credits 加载');
+                document.getElementById('analysisCount').textContent = '-';
+                document.getElementById('energyFill').style.width = '0%';
+                document.getElementById('energyValue').textContent = '0%';
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('user_profiles')
+                    .select('credits')
+                    .eq('user_id', userId)
+                    .single();
+                
+                if (error) {
+                    console.error('从 Supabase 加载 credits 失败:', error);
+                    document.getElementById('analysisCount').textContent = '-';
+                    document.getElementById('energyFill').style.width = '0%';
+                    document.getElementById('energyValue').textContent = '0%';
+                    return;
+                }
+                
+                if (data) {
+                    const credits = data.credits || 0;
+                    
+                    // 更新分析次数显示
+                    document.getElementById('analysisCount').textContent = credits;
+                    
+                    // 计算能量条：(credits / 10) * 100%（封顶 100%）
+                    const percentage = Math.min((credits / 10) * 100, 100);
+                    document.getElementById('energyFill').style.width = `${percentage}%`;
+                    document.getElementById('energyValue').textContent = `${Math.round(percentage)}%`;
+                    
+                    console.log('✓ 从 Supabase 加载 credits:', credits, `能量条: ${percentage}%`);
+                } else {
+                    document.getElementById('analysisCount').textContent = '0';
+                    document.getElementById('energyFill').style.width = '0%';
+                    document.getElementById('energyValue').textContent = '0%';
+                }
+            } catch (error) {
+                console.error('加载 credits 失败:', error);
+                document.getElementById('analysisCount').textContent = '-';
+                document.getElementById('energyFill').style.width = '0%';
+                document.getElementById('energyValue').textContent = '0%';
+            }
+        }
+
         // 双源自愈：加载页面时，优先从 Supabase 实时获取该用户的档案
         async function loadTargetsFromSupabase() {
             // 强制 User ID 校验：必须在开头检查
@@ -2834,6 +2853,9 @@
         if (tg) {
             tg.ready(() => {
                 // 确保 Telegram 环境完全就绪后再尝试获取 userId
+                // 个人中心实时显示：在小程序启动时，从 Supabase 读取该用户的 credits 并显示
+                loadUserCredits();
+                
                 loadTargetsFromSupabase().then(targets => {
                     window.currentTargets = targets || [];
                     // 修复首屏静默加载：确保 tg.ready 触发后显式调用 renderTargetList
@@ -2906,6 +2928,9 @@
                         console.error('加载档案列表失败:', error);
                         renderTargetList([]);
                     }
+                } else if (targetPage === 'user') {
+                    // 个人中心实时显示：切换到中心页面时，重新加载 credits
+                    await loadUserCredits();
                 }
             });
         });
